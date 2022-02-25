@@ -14,6 +14,7 @@ class QcommerceFilesServiceProvider extends PluginServiceProvider
     {
         $package
             ->name('qcommerce-files')
+            ->hasViews()
             ->hasConfigFile([
                 'file-manager',
             ]);

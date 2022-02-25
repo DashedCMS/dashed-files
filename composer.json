@@ -51,10 +51,7 @@
         "laravel": {
             "providers": [
                 "Qubiqx\\QcommerceFiles\\QcommerceFilesServiceProvider"
-            ],
-            "aliases": {
-                "QcommerceFiles": "Qubiqx\\QcommerceFiles\\Facades\\QcommerceFiles"
-            }
+            ]
         }
     },
     "minimum-stability": "dev",
