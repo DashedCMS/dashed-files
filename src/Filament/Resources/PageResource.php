@@ -3,25 +3,25 @@
 namespace Qubiqx\QcommerceCore\Filament\Resources;
 
 use Closure;
-use Illuminate\Support\Str;
-use Filament\Resources\Form;
-use Filament\Resources\Table;
-use Filament\Resources\Resource;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Qubiqx\QcommerceCore\Models\Page;
 use Filament\Forms\Components\Builder;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\TextColumn;
-use Qubiqx\QcommerceCore\Classes\Sites;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Form;
+use Filament\Resources\Resource;
+use Filament\Resources\Table;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Str;
+use Qubiqx\QcommerceCore\Classes\Sites;
+use Qubiqx\QcommerceCore\Filament\Resources\PageResource\Pages\CreatePage;
 use Qubiqx\QcommerceCore\Filament\Resources\PageResource\Pages\EditPage;
 use Qubiqx\QcommerceCore\Filament\Resources\PageResource\Pages\ListPages;
-use Qubiqx\QcommerceCore\Filament\Resources\PageResource\Pages\CreatePage;
+use Qubiqx\QcommerceCore\Models\Page;
 
 class PageResource extends Resource
 {

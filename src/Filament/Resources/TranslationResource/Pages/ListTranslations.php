@@ -3,21 +3,21 @@
 namespace Qubiqx\QcommerceCore\Filament\Resources\TranslationResource\Pages;
 
 use Closure;
-use Illuminate\Support\Str;
-use Filament\Resources\Pages\Page;
-use Filament\Forms\Components\Tabs;
-use Illuminate\Support\Facades\Cache;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\FileUpload;
-use Qubiqx\QcommerceCore\Classes\Locales;
-use Qubiqx\QcommerceCore\Models\Translation;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Qubiqx\QcommerceCore\Filament\Resources\TranslationResource;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Resources\Pages\Page;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
+use Qubiqx\QcommerceCore\Classes\Locales;
+use Qubiqx\QcommerceCore\Filament\Resources\TranslationResource;
+use Qubiqx\QcommerceCore\Models\Translation;
 
 class ListTranslations extends Page implements HasForms
 {

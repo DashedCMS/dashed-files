@@ -2,13 +2,13 @@
 
 namespace Qubiqx\QcommerceCore\Filament\Resources\PageResource\Pages;
 
-use Illuminate\Support\Str;
-use Qubiqx\QcommerceCore\Models\Page;
-use Qubiqx\QcommerceCore\Classes\Sites;
 use Filament\Pages\Actions\ButtonAction;
 use Filament\Resources\Pages\EditRecord;
-use Qubiqx\QcommerceCore\Filament\Resources\PageResource;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use Illuminate\Support\Str;
+use Qubiqx\QcommerceCore\Classes\Sites;
+use Qubiqx\QcommerceCore\Filament\Resources\PageResource;
+use Qubiqx\QcommerceCore\Models\Page;
 
 class EditPage extends EditRecord
 {

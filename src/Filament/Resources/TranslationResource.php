@@ -3,11 +3,11 @@
 namespace Qubiqx\QcommerceCore\Filament\Resources;
 
 use Filament\Resources\Form;
-use Filament\Resources\Table;
 use Filament\Resources\Resource;
-use Qubiqx\QcommerceCore\Models\Translation;
+use Filament\Resources\Table;
 use Qubiqx\QcommerceCore\Filament\Resources\TranslationResource\Pages\EditTranslation;
 use Qubiqx\QcommerceCore\Filament\Resources\TranslationResource\Pages\ListTranslations;
+use Qubiqx\QcommerceCore\Models\Translation;
 
 class TranslationResource extends Resource
 {

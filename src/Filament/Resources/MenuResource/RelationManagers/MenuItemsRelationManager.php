@@ -3,12 +3,12 @@
 namespace Qubiqx\QcommerceCore\Filament\Resources\MenuResource\RelationManagers;
 
 use Filament\Resources\Form;
+use Filament\Resources\RelationManagers\HasManyRelationManager;
 use Filament\Resources\Table;
+use Filament\Tables\Actions\ButtonAction;
 use Filament\Tables\Actions\LinkAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ButtonAction;
 use Qubiqx\QcommerceCore\Models\MenuItem;
-use Filament\Resources\RelationManagers\HasManyRelationManager;
 
 class MenuItemsRelationManager extends HasManyRelationManager
 {
