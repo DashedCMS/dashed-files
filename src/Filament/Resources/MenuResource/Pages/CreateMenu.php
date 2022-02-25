@@ -2,8 +2,8 @@
 
 namespace Qubiqx\QcommerceCore\Filament\Resources\MenuResource\Pages;
 
-use Illuminate\Support\Str;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Str;
 use Qubiqx\QcommerceCore\Filament\Resources\MenuResource;
 
 class CreateMenu extends CreateRecord

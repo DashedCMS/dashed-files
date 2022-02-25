@@ -2,16 +2,16 @@
 
 namespace Qubiqx\QcommerceCore\Filament\Resources;
 
-use Filament\Resources\Form;
-use Filament\Resources\Table;
-use Filament\Resources\Resource;
 use Filament\Forms\Components\Section;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Qubiqx\QcommerceCore\Models\FormInput;
+use Filament\Resources\Form;
+use Filament\Resources\Resource;
+use Filament\Resources\Table;
+use Filament\Tables\Columns\TextColumn;
 use Qubiqx\QcommerceCore\Filament\Resources\FormResource\Pages\ListForm;
 use Qubiqx\QcommerceCore\Filament\Resources\FormResource\Pages\ViewForm;
 use Qubiqx\QcommerceCore\Filament\Resources\FormResource\Pages\ViewFormInput;
+use Qubiqx\QcommerceCore\Models\FormInput;
 
 class FormResource extends Resource
 {

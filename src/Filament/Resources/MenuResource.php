@@ -3,20 +3,20 @@
 namespace Qubiqx\QcommerceCore\Filament\Resources;
 
 use Closure;
-use Illuminate\Support\Str;
-use Filament\Resources\Form;
-use Filament\Resources\Table;
-use Filament\Resources\Resource;
-use Qubiqx\QcommerceCore\Models\Menu;
 use Filament\Forms\Components\Section;
-use Filament\Tables\Actions\LinkAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Form;
+use Filament\Resources\Resource;
+use Filament\Resources\Table;
+use Filament\Tables\Actions\LinkAction;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Str;
+use Qubiqx\QcommerceCore\Filament\Resources\MenuResource\Pages\CreateMenu;
 use Qubiqx\QcommerceCore\Filament\Resources\MenuResource\Pages\EditMenu;
 use Qubiqx\QcommerceCore\Filament\Resources\MenuResource\Pages\ListMenu;
-use Qubiqx\QcommerceCore\Filament\Resources\MenuResource\Pages\CreateMenu;
 use Qubiqx\QcommerceCore\Filament\Resources\MenuResource\RelationManagers\MenuItemsRelationManager;
+use Qubiqx\QcommerceCore\Models\Menu;
 
 class MenuResource extends Resource
 {

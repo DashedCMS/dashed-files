@@ -2,12 +2,12 @@
 
 namespace Qubiqx\QcommerceCore\Filament\Resources\PageResource\Pages;
 
-use Illuminate\Support\Str;
-use Qubiqx\QcommerceCore\Models\Page;
-use Qubiqx\QcommerceCore\Classes\Sites;
 use Filament\Resources\Pages\CreateRecord;
-use Qubiqx\QcommerceCore\Filament\Resources\PageResource;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use Illuminate\Support\Str;
+use Qubiqx\QcommerceCore\Classes\Sites;
+use Qubiqx\QcommerceCore\Filament\Resources\PageResource;
+use Qubiqx\QcommerceCore\Models\Page;
 
 class CreatePage extends CreateRecord
 {
