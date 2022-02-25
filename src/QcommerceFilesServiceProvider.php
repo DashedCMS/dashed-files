@@ -17,7 +17,6 @@ class QcommerceFilesServiceProvider extends PluginServiceProvider
             ->hasConfigFile([
                 'file-manager',
             ]);
-
     }
 
     protected function getPages(): array
