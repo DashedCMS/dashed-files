@@ -3,8 +3,8 @@
 namespace Qubiqx\QcommerceFiles;
 
 use Filament\PluginServiceProvider;
-use Spatie\LaravelPackageTools\Package;
 use Qubiqx\QcommerceFiles\Filament\Pages\FilesPage;
+use Spatie\LaravelPackageTools\Package;
 
 class QcommerceFilesServiceProvider extends PluginServiceProvider
 {
