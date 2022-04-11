@@ -18,7 +18,7 @@
     "require": {
         "php": "^8.1",
         "spatie/laravel-package-tools": "^1.9.2",
-        "alexusmai/laravel-file-manager": "*"
+        "alexusmai/laravel-file-manager": "^3.0"
     },
     "require-dev": {
         "nunomaduro/collision": "^6.0",
