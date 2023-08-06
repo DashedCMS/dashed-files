@@ -2,8 +2,8 @@
 
 namespace Dashed\DashedFiles;
 
-use Filament\PluginServiceProvider;
 use Dashed\DashedFiles\Filament\Pages\FilesPage;
+use Filament\PluginServiceProvider;
 use Spatie\LaravelPackageTools\Package;
 
 class DashedFilesServiceProvider extends PluginServiceProvider
