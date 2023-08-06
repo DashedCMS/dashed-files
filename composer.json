@@ -1,17 +1,17 @@
 {
-    "name": "qubiqx/qcommerce-files",
-    "description": "This is my package qcommerce-files",
+    "name": "dashed/dashed-files",
+    "description": "This is my package dashed-files",
     "keywords": [
-        "Qubiqx",
+        "Dashed",
         "laravel",
-        "qcommerce-files"
+        "dashed-files"
     ],
-    "homepage": "https://github.com/qubiqx/qcommerce-files",
+    "homepage": "https://github.com/Dashed-DEV/dashed-files",
     "license": "MIT",
     "authors": [
         {
             "name": "Robin van Maasakker",
-            "email": "robin@qubiqx.com",
+            "email": "robin@dashed.nl",
             "role": "Developer"
         }
     ],
@@ -30,13 +30,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Qubiqx\\QcommerceFiles\\": "src",
-            "Qubiqx\\QcommerceFiles\\Database\\Factories\\": "database/factories"
+            "Dashed\\DashedFiles\\": "src",
+            "Dashed\\DashedFiles\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Qubiqx\\QcommerceFiles\\Tests\\": "tests"
+            "Dashed\\DashedFiles\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -53,7 +53,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Qubiqx\\QcommerceFiles\\QcommerceFilesServiceProvider"
+                "Dashed\\DashedFiles\\DashedFilesServiceProvider"
             ]
         }
     },

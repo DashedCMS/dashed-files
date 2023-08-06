@@ -31,7 +31,7 @@ return [
      * List of disk names that you want to use
      * (from config/filesystems)
      */
-    'diskList' => ['qcommerce'],
+    'diskList' => ['dashed'],
 
     /**
      * Default disk for left manager
@@ -103,7 +103,7 @@ return [
      * Add your middleware name to array -> ['web', 'auth', 'admin']
      * !!!! RESTRICT ACCESS FOR NON ADMIN USERS !!!!
      */
-    'middleware' => ['web', \Qubiqx\QcommerceCore\Middleware\AdminMiddleware::class],
+    'middleware' => ['web', \Dashed\DashedCore\Middleware\AdminMiddleware::class],
 
     /***************************************************************************
      * ACL mechanism ON/OFF

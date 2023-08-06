@@ -1,12 +1,12 @@
 <?php
 
-namespace Qubiqx\QcommerceFiles\Commands;
+namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
 
 class QcommerceFilesCommand extends Command
 {
-    public $signature = 'qcommerce-files';
+    public $signature = 'dashed-files';
 
     public $description = 'My command';
 

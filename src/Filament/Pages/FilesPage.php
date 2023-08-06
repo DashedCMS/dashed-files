@@ -1,6 +1,6 @@
 <?php
 
-namespace Qubiqx\QcommerceFiles\Filament\Pages;
+namespace Dashed\DashedFiles\Filament\Pages;
 
 use Filament\Pages\Page;
 
@@ -10,5 +10,5 @@ class FilesPage extends Page
     protected static ?string $navigationGroup = 'Content';
     protected static ?string $navigationLabel = 'Bestanden';
 
-    protected static string $view = 'qcommerce-files::files.pages.files';
+    protected static string $view = 'dashed-files::files.pages.files';
 }

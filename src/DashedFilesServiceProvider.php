@@ -1,19 +1,19 @@
 <?php
 
-namespace Qubiqx\QcommerceFiles;
+namespace Dashed\DashedFiles;
 
 use Filament\PluginServiceProvider;
-use Qubiqx\QcommerceFiles\Filament\Pages\FilesPage;
+use Dashed\DashedFiles\Filament\Pages\FilesPage;
 use Spatie\LaravelPackageTools\Package;
 
-class QcommerceFilesServiceProvider extends PluginServiceProvider
+class DashedFilesServiceProvider extends PluginServiceProvider
 {
-    public static string $name = 'qcommerce-files';
+    public static string $name = 'dashed-files';
 
     public function configurePackage(Package $package): void
     {
         $package
-            ->name('qcommerce-files')
+            ->name('dashed-files')
             ->hasViews()
             ->hasConfigFile([
                 'file-manager',
