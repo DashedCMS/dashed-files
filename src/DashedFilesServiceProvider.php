@@ -2,11 +2,10 @@
 
 namespace Dashed\DashedFiles;
 
-use Dashed\DashedFiles\Filament\Pages\FilesPage;
-use Filament\PluginServiceProvider;
 use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class DashedFilesServiceProvider extends PluginServiceProvider
+class DashedFilesServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'dashed-files';
 
@@ -18,12 +17,5 @@ class DashedFilesServiceProvider extends PluginServiceProvider
             ->hasConfigFile([
                 'file-manager',
             ]);
-    }
-
-    protected function getPages(): array
-    {
-        return array_merge(parent::getPages(), [
-            FilesPage::class,
-        ]);
     }
 }

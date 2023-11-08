@@ -4,7 +4,7 @@ namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
 
-class QcommerceFilesCommand extends Command
+class DashedFilesCommand extends Command
 {
     public $signature = 'dashed-files';
 

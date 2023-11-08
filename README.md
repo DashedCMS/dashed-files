@@ -52,8 +52,8 @@ php artisan vendor:publish --tag="dashed-files-views"
 ## Usage
 
 ```php
-$qcommerceFiles = new Dashed\DashedFiles();
-echo $qcommerceFiles->echoPhrase('Hello, Dashed!');
+$dashedFiles = new Dashed\DashedFiles();
+echo $dashedFiles->echoPhrase('Hello, Dashed!');
 ```
 
 ## Testing
