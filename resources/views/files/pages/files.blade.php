@@ -6,7 +6,7 @@
     @endpush
 
     <div style="height: 600px;">
-        <div id="fm"></div>
+        <div id="fm" style="height: 600px;"></div>
     </div>
 
     @push('scripts')
