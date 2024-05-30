@@ -33,7 +33,10 @@
         "psr-4": {
             "Dashed\\DashedFiles\\": "src",
             "Dashed\\DashedFiles\\Database\\Factories\\": "database/factories"
-        }
+        },
+        "files": [
+            "src/Helpers/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -56,10 +59,7 @@
         "laravel": {
             "providers": [
                 "Dashed\\DashedFiles\\DashedFilesServiceProvider"
-            ],
-            "aliases": {
-                "Helper": "Dashed\\DashedFiles\\Classes\\Helper"
-            }
+            ]
         }
     },
     "minimum-stability": "dev",
