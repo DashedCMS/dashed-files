@@ -1,8 +1,6 @@
 <?php
 
 
-use Dashed\DashedCore\CMSManager;
-use Dashed\DashedCore\SeoManager;
 use Dashed\DashedFiles\Classes\MediaHelper;
 
 if (! function_exists('mediaHelper')) {

@@ -3,7 +3,6 @@
 namespace Dashed\DashedFiles\Classes;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
 
 class MediaHelper extends Command
@@ -19,7 +18,7 @@ class MediaHelper extends Command
             ->downloadable()
             ->reorderable();
 
-        if($isImage){
+        if($isImage) {
             $mediaPicker->acceptedFileTypes(['image/*']);
         }
 

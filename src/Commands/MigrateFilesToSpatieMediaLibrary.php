@@ -15,7 +15,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
     {
         $folders = Storage::disk('dashed')->allDirectories();
 
-        foreach($folders as $folder){
+        foreach($folders as $folder) {
             $this->info('Migration started for folder: ' . $folder);
         }
 
