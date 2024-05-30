@@ -56,7 +56,10 @@
         "laravel": {
             "providers": [
                 "Dashed\\DashedFiles\\DashedFilesServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Helper": "Dashed\\DashedFiles\\Classes\\Helper"
+            }
         }
     },
     "minimum-stability": "dev",
