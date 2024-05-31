@@ -11,13 +11,13 @@ class MediaHelper extends Command
     {
 
         return;
-//        $mediaPicker = MediaPicker::make($name)
-//            ->label($label)
-//            ->required($required)
-//            ->multiple($multiple)
-//            ->showFileName()
-//            ->downloadable()
-//            ->reorderable();
+        //        $mediaPicker = MediaPicker::make($name)
+        //            ->label($label)
+        //            ->required($required)
+        //            ->multiple($multiple)
+        //            ->showFileName()
+        //            ->downloadable()
+        //            ->reorderable();
 
         if($isImage) {
             $mediaPicker->acceptedFileTypes(['image/*']);
