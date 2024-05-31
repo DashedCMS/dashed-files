@@ -3,6 +3,7 @@
 namespace Dashed\DashedFiles\Media\Components;
 
 use Dashed\DashedFiles\DashedFilesPlugin;
+use Dashed\DashedFiles\Media\Components\BrowseLibrary as Concerns;
 use Filament\Facades\Filament;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -16,7 +17,6 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Dashed\DashedFiles\Media\Components\BrowseLibrary as Concerns;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
 
 /**

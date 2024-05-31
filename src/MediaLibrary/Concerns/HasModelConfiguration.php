@@ -4,8 +4,6 @@ namespace Dashed\DashedFiles\MediaLibrary\Concerns;
 
 use Dashed\DashedFiles\Models\MediaFile;
 use Dashed\DashedFiles\Models\MediaFolder;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 trait HasModelConfiguration
 {
