@@ -65,8 +65,8 @@
                         <div
                             class="-mb-[40px] mt-4 h-full max-h-full rounded-lg bg-gray-100 px-6 py-2 dark:bg-gray-950"
                         >
-                            @livewire('media-library::media.browse-library', [
-                                'defer' => true,
+{{--                            @livewire('media-library::media.browse-library', [--}}
+{{--                                'defer' => true,--}}
                             ])
                         </div>
                     </div>

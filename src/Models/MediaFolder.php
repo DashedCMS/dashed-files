@@ -5,6 +5,7 @@ namespace Dashed\DashedFiles\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MediaFolder extends Model
 {
@@ -12,12 +13,35 @@ class MediaFolder extends Model
 
     public static function booted()
     {
+        static::deleting(function (self $folder): void {
+            $folder->children()->lazy()->each(function (self $folder) {
+                $folder->delete();
+            });
+
+            $folder->mediaLibraryItems()->update([
+                'folder_id' => $folder->parent_id,
+            ]);
+        });
+
         static::saved(function ($folder) {
             foreach (MediaFolder::all() as $otherFolder) {
                 $otherFolder->path = $otherFolder->getPath();
                 $otherFolder->saveQuietly();
             }
         });
+    }
+
+    public function deleteRecursive(): void
+    {
+        $this->children()->lazy()->each(function (self $mediaLibraryFolder) {
+            $mediaLibraryFolder->deleteRecursive();
+        });
+
+        $this->mediaLibraryItems()->lazy()->each(function (MediaLibraryItem $mediaLibraryItem) {
+            $mediaLibraryItem->delete();
+        });
+
+        $this->delete();
     }
 
     public function getPath()

@@ -26,7 +26,7 @@ class MediaLibrary extends Page implements HasForms
 
     protected static ?int $navigationSort = 0;
 
-    protected static string $view = 'media-library::pages.media-library';
+    protected static string $view = 'dashed-files::pages.media-library';
 
     public function displayUploadBox(): void
     {
