@@ -6,10 +6,7 @@ use App\Models\User;
 use Dashed\DashedFiles\Models\MediaFile;
 use Dashed\DashedFiles\Models\MediaFolder;
 use Illuminate\Console\Command;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MigrateFilesToSpatieMediaLibrary extends Command
 {
@@ -30,13 +27,14 @@ class MigrateFilesToSpatieMediaLibrary extends Command
         $user = User::first();
 
         foreach ($folders as $folder) {
-            if (!str($folder)->contains('__media-cache')) {
+            if (! str($folder)->contains('__media-cache')) {
                 $this->info('Migration started for folder: ' . $folder);
 
                 $parentId = $this->getParentId($folder);
 
                 if (MediaFolder::where('name', $folder)->exists()) {
                     $this->info('Folder already exists, skipping...');
+
                     continue;
                 }
                 $newFolder = new MediaFolder();
@@ -44,7 +42,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
                 $newFolder->parent_id = $parentId;
                 $newFolder->save();
 
-                $files = $this->withProgressBar(Storage::disk('dashed')->files($folder), function ($file) use ($user, $newFolder){
+                $files = $this->withProgressBar(Storage::disk('dashed')->files($folder), function ($file) use ($user, $newFolder) {
                     if (Storage::disk('dashed')->exists($file)) {
                         $mediaFile = new MediaFile();
                         $mediaFile->folder_id = $newFolder->id;
@@ -75,6 +73,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
     {
         $folders = str($folder)->explode('/')->toArray();
         array_pop($folders);
+
         return MediaFolder::where('name', implode('/', $folders))->first()->id ?? null;
     }
 }

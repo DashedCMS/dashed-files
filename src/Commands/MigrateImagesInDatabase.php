@@ -2,15 +2,12 @@
 
 namespace Dashed\DashedFiles\Commands;
 
-use App\Models\User;
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MigrateImagesInDatabase extends Command
 {
@@ -28,7 +25,7 @@ class MigrateImagesInDatabase extends Command
 
         foreach ($tables as $table) {
             $tableName = $table->{"Tables_in_$databaseName"};
-            if (!in_array($tableName, $tablesToSkip)) {
+            if (! in_array($tableName, $tablesToSkip)) {
                 $this->info('Checking table: ' . $tableName);
 
                 // Get all columns of the table
@@ -68,6 +65,7 @@ class MigrateImagesInDatabase extends Command
     private function isJson($string)
     {
         json_decode($string);
+
         return (json_last_error() == JSON_ERROR_NONE);
     }
 
@@ -83,9 +81,9 @@ class MigrateImagesInDatabase extends Command
             foreach(MediaLibraryItem::all() as $mediaLibraryItem) {
                 dd($mediaLibraryItem->getItem()->getUrl(), $mediaLibraryItem->getItem()->getPath());
             }
-//            $mediaLibraryItem = MediaLibraryItem::find($id);
-//            $url = $mediaLibraryItem->getItem()->getUrl()
-//            $path = $mediaLibraryItem->getItem()->getPath();
+            //            $mediaLibraryItem = MediaLibraryItem::find($id);
+            //            $url = $mediaLibraryItem->getItem()->getUrl()
+            //            $path = $mediaLibraryItem->getItem()->getPath();
             dd($tableName, $columnName, $value);
             //Match the value with a file in the storage
         }
