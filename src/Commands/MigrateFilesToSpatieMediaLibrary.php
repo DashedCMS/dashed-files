@@ -18,21 +18,22 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public function handle(): int
     {
-        MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
-        MediaLibraryItem::all()->each(fn($item) => $item->delete());
-        Media::all()->each(fn($media) => $media->delete());
+        MediaLibraryFolder::all()->each(fn ($folder) => $folder->delete());
+        MediaLibraryItem::all()->each(fn ($item) => $item->delete());
+        Media::all()->each(fn ($media) => $media->delete());
 
         $folders = Storage::disk('dashed')->allDirectories();
         $user = User::first();
 
         foreach ($folders as $folder) {
-            if (!str($folder)->contains('__media-cache')) {
+            if (! str($folder)->contains('__media-cache')) {
                 $this->info('Migration started for folder: ' . $folder);
 
                 $parentId = $this->getParentId($folder);
 
                 if (MediaLibraryFolder::where('name', $folder)->exists()) {
                     $this->info('Folder already exists, skipping...');
+
                     continue;
                 }
                 $newFolder = new MediaLibraryFolder();
@@ -42,10 +43,10 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
                 $this->withProgressBar(Storage::disk('dashed')->files($folder), function ($file) use ($user, $newFolder) {
                     if (Storage::disk('dashed')->exists($file)) {
-//                        $uploadedFile = UploadedFile::createFromBase(new \Symfony\Component\HttpFoundation\File\UploadedFile($file, basename($file)));
-//                        dd($uploadedFile);
+                        //                        $uploadedFile = UploadedFile::createFromBase(new \Symfony\Component\HttpFoundation\File\UploadedFile($file, basename($file)));
+                        //                        dd($uploadedFile);
 
-//                        MediaLibraryItem::addUpload($uploadedFile);
+                        //                        MediaLibraryItem::addUpload($uploadedFile);
                         try {
                             $filamentMediaLibraryitem = new MediaLibraryItem();
                             $filamentMediaLibraryitem->uploaded_by_user_id = $user->id;
@@ -84,6 +85,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
     {
         $folders = str($folder)->explode('/')->toArray();
         array_pop($folders);
+
         return MediaLibraryFolder::where('name', implode('/', $folders))->first()->id ?? null;
     }
 }
