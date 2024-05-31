@@ -2,7 +2,6 @@
 
 namespace Dashed\DashedFiles\MediaLibrary;
 
-use Illuminate\Support\Collection;
 use RalphJSmit\Filament\MediaLibrary\Media\Components\BrowseLibrary;
 use RalphJSmit\Filament\MediaLibrary\Media\Components\MediaInfo;
 use RalphJSmit\Filament\MediaLibrary\Media\Components\UploadMedia;
