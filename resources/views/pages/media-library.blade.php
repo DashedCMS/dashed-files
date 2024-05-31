@@ -9,7 +9,7 @@
                 })
             "
         >
-            @livewire('dashed-files::media.browse-library')
+            @livewire('media-library::media.browse-library')
         </div>
 
         <aside
@@ -19,7 +19,7 @@
                 'rounded-r-xl' => ($this->getMaxContentWidth() ?? config('filament.layout.max_content_width') ?? '7xl') !== 'full',
             ])
         >
-            @livewire('dashed-files::media.media-info')
+            @livewire('media-library::media.media-info')
         </aside>
 
         <div class="md:hidden" x-data x-ref="modalContainerMediaInfo">
@@ -36,7 +36,7 @@
                     }
                 "
             >
-                @livewire('dashed-files::media.media-info')
+                @livewire('media-library::media.media-info')
             </x-filament::modal>
         </div>
     </div>
