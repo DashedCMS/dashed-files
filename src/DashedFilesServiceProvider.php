@@ -23,7 +23,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 MigrateImagesInDatabase::class,
             ])
             ->hasConfigFile([
-                'file-manager',
+                'media-library',
             ]);
     }
 }
