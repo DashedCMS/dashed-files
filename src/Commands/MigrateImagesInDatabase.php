@@ -4,7 +4,6 @@ namespace Dashed\DashedFiles\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -75,16 +74,16 @@ class MigrateImagesInDatabase extends Command
 
         foreach ($tables as $table) {
             $tableName = $table->{"Tables_in_$databaseName"};
-//            if ($tableName == 'dashed__translations') {
-            if (!in_array($tableName, $tablesToSkip)) {
+            //            if ($tableName == 'dashed__translations') {
+            if (! in_array($tableName, $tablesToSkip)) {
                 $this->info('Checking table: ' . $tableName);
 
                 // Get all columns of the table
                 $columns = Schema::getColumnListing($tableName);
 
                 $this->withProgressBar($columns, function ($column) use ($tableName, $columnsToSkip) {
-//                    if ($column == 'value') {
-                    if (!in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
+                    //                    if ($column == 'value') {
+                    if (! in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
                         $this->info('checking column: ' . $column . ' in table: ' . $tableName);
                         $rows = DB::table($tableName)->select('id', $column)->get();
 
@@ -98,7 +97,7 @@ class MigrateImagesInDatabase extends Command
 
         if ($this->failedToMigrateCount > 0) {
             $this->error('Failed to migrate count: ' . $this->failedToMigrateCount);
-        }else{
+        } else {
             $this->info('All images migrated successfully');
         }
 
@@ -132,7 +131,7 @@ class MigrateImagesInDatabase extends Command
     {
         try {
             $fileExists = Storage::disk('dashed')->exists($value);
-            if(!str($value)->contains('/')){
+            if(! str($value)->contains('/')) {
                 $fileExists = false;
             }
         } catch (Exception $exception) {
@@ -154,7 +153,7 @@ class MigrateImagesInDatabase extends Command
                     ->update([
                         $columnName => str($currentValue->$columnName)->replace($value, $mediaItem->id),
                     ]);
-//                $this->info('Replacement made in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId . ' with value ' . $value . ' with ' . $mediaItem->id);
+                //                $this->info('Replacement made in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId . ' with value ' . $value . ' with ' . $mediaItem->id);
             } else {
                 $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
                 $this->failedToMigrateCount++;

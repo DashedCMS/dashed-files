@@ -3,9 +3,7 @@
 namespace Dashed\DashedFiles\Commands;
 
 use App\Models\User;
-use Dashed\DashedCore\Models\Customsetting;
 use Illuminate\Console\Command;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
@@ -21,9 +19,9 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public function handle(): int
     {
-//        MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
-//        MediaLibraryItem::all()->each(fn($item) => $item->delete());
-//        Media::all()->each(fn($media) => $media->delete());
+        //        MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
+        //        MediaLibraryItem::all()->each(fn($item) => $item->delete());
+        //        Media::all()->each(fn($media) => $media->delete());
 
         $mediaLibraryItems = MediaLibraryItem::all();
         foreach ($mediaLibraryItems as $mediaLibraryItem) {
@@ -36,7 +34,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
         $user = User::first();
 
         foreach ($folders as &$folder) {
-            if (!str($folder)->contains('__media-cache')) {
+            if (! str($folder)->contains('__media-cache')) {
                 $this->info('Migration started for folder: ' . $folder);
 
                 $folder = str($folder)->replace('dashed/', '');
@@ -66,7 +64,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             $this->info('Migrating files for folder: ' . $folder['folder']);
             $this->withProgressBar(Storage::disk('dashed')->files('dashed/' . $folder['folder']), function ($file) use ($user, $folder) {
                 try {
-                    if (!$this->mediaLibraryItems->where('file_name_to_match', basename($file))->first()) {
+                    if (! $this->mediaLibraryItems->where('file_name_to_match', basename($file))->first()) {
                         $filamentMediaLibraryItem = new MediaLibraryItem();
                         $filamentMediaLibraryItem->uploaded_by_user_id = $user->id;
                         $filamentMediaLibraryItem->folder_id = $folder['newFolderId'];

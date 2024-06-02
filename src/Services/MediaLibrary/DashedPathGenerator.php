@@ -2,8 +2,6 @@
 
 namespace Dashed\DashedFiles\Services\MediaLibrary;
 
-
-use phpDocumentor\Reflection\Types\False_;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\MediaLibrary\Support\PathGenerator\PathGenerator;
 
@@ -13,8 +11,8 @@ class DashedPathGenerator implements PathGenerator
     {
         $path = '/';
 
-        if($media->model->folder ?? false){
-            foreach($media->model->folder->getAncestors() as $ancestor){
+        if($media->model->folder ?? false) {
+            foreach($media->model->folder->getAncestors() as $ancestor) {
                 $path .= $ancestor->name . '/';
             }
         }
