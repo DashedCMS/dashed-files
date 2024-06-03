@@ -17,6 +17,16 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public $mediaLibraryItems;
 
+    private function getAllDirectories($disk, $directory = '')
+    {
+        $directories = Storage::disk($disk)->directories($directory);
+        $this->info('Check directory: ' . $directory);
+        foreach ($directories as $dir) {
+            $directories = array_merge($directories, $this->getAllDirectories($disk, $dir));
+        }
+        return $directories;
+    }
+
     public function handle(): int
     {
         //                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
@@ -29,7 +39,9 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             return $item;
         });
 
-        $folders = Storage::disk('dashed')->allDirectories('/dashed');
+//        $folders = Storage::disk('dashed')->allDirectories('dashed');
+        $folders = $this->getAllDirectories('dashed', 'dashed');
+
         $allFolders = [];
         $user = User::first();
 
@@ -62,7 +74,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
         $folderCount = 1;
         foreach ($allFolders as $folder) {
-            $this->info('Migrating files for folder: ' . $folder['folder']);
+            $this->info('Migrating files for folder ' . $folderCount . '/' . count($allFolders) . ' ' . $folder['folder']);
             $this->withProgressBar(Storage::disk('dashed')->files('dashed/' . $folder['folder']), function ($file) use ($user, $folder, $allFolders, $folderCount) {
                 try {
                     $fileName = basename($file);
