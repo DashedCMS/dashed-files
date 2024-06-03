@@ -2,11 +2,12 @@
 
 namespace Dashed\DashedFiles\Commands;
 
+use Dashed\DashedCore\Models\Customsetting;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MigrateImagesInDatabase extends Command
@@ -17,6 +18,8 @@ class MigrateImagesInDatabase extends Command
 
     public $mediaLibraryItems;
     public int $failedToMigrateCount = 0;
+    public array $failedToMigrate = [
+    ];
 
     private function getTablesToSkip(): array
     {
@@ -49,6 +52,7 @@ class MigrateImagesInDatabase extends Command
         return [
             'id',
             'name',
+            'title',
             'slug',
             'created_at',
             'updated_at',
@@ -65,6 +69,11 @@ class MigrateImagesInDatabase extends Command
             'from_url',
             'locale',
             'viewed',
+            'first_name',
+            'last_name',
+            'phone_number',
+            'email',
+            'function',
         ];
     }
 
@@ -73,7 +82,6 @@ class MigrateImagesInDatabase extends Command
 
         $this->mediaLibraryItems = MediaLibraryItem::all()->map(function ($item) {
             $item['file_name_to_match'] = basename($item->getItem()->getPath() ?? '');
-
             return $item;
         });
 
@@ -84,14 +92,14 @@ class MigrateImagesInDatabase extends Command
 
         foreach ($tables as $table) {
             $tableName = $table->{"Tables_in_$databaseName"};
-            if (! in_array($tableName, $tablesToSkip)) {
+            if (!in_array($tableName, $tablesToSkip)) {
                 $this->info('Checking table: ' . $tableName);
 
                 // Get all columns of the table
                 $columns = Schema::getColumnListing($tableName);
 
                 $this->withProgressBar($columns, function ($column) use ($tableName, $columnsToSkip) {
-                    if (! in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
+                    if (!in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
                         $this->info('checking column: ' . $column . ' in table: ' . $tableName);
                         DB::table($tableName)->select('id', $column)->orderBy('id')->chunk(100, function ($rows) use ($column, $tableName) {
                             foreach ($rows as $row) {
@@ -108,6 +116,14 @@ class MigrateImagesInDatabase extends Command
         } else {
             $this->info('All images migrated successfully');
         }
+
+        $this->table(
+            [
+                'Tabel',
+                'ID',
+                'Kolom',
+                'Waarde'
+            ], $this->failedToMigrate);
 
         return self::SUCCESS;
     }
@@ -135,37 +151,75 @@ class MigrateImagesInDatabase extends Command
         return (json_last_error() == JSON_ERROR_NONE);
     }
 
-    private function isLikelyFilePath($string): bool
+    private function containsDotInLast10Chars($string)
     {
-        $fileExtensions = [
-            'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'svg', 'ico', 'heic', 'heif', 'raw', 'psd', 'ai', 'eps', 'pdf',
-        ];
+        // Get the last 10 characters of the string
+        $lastTenChars = substr($string, -10);
 
-        return (Str::contains($string, '/') || Str::contains($string, '\\')) && Str::endsWith(Str::lower($string), $fileExtensions);
+        // Check if the last 10 characters contain a dot
+        if (strpos($lastTenChars, '.') !== false) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private function performAction($tableName, $columnName, $value, $rowId)
     {
-        if ($this->isLikelyFilePath($value) && Storage::disk('dashed')->exists($value)) {
+        if ($this->containsDotInLast10Chars($value)) {
+            try {
+                $fileExists = Storage::disk('dashed')->exists($value);
+                if (!str($value)->contains('/')) {
+                    $fileExists = false;
+                }
+            } catch (Exception $exception) {
+                $fileExists = false;
+            }
+        } else {
+            $fileExists = false;
+        }
+
+        if ($fileExists) {
+            $filePassedChecks = true;
             $fileToCheck = basename($value);
             if (str($fileToCheck)->length() > 200) {
-                $value = str($fileToCheck)->substr(50);
+                $value = str(str($fileToCheck)->explode('/')->last())->substr(50);
             }
-            $mediaItem = $this->mediaLibraryItems->firstWhere('file_name_to_match', basename($value));
-            if ($mediaItem) {
-                $currentValue = DB::table($tableName)->where('id', $rowId)->value($columnName);
-                DB::table($tableName)->where('id', $rowId)->update([
-                    $columnName => str($currentValue)->replace($value, $mediaItem->id),
-                ]);
+            if ($mediaItem = $this->mediaLibraryItems->where('file_name_to_match', basename($value))->first()) {
+                try {
+                    $filePassedChecks = Storage::disk('dashed')->exists($mediaItem->getItem()->getPath());
+                    if (!str($value)->contains('/')) {
+                        $filePassedChecks = false;
+                    }
+                } catch (Exception $exception) {
+                    $filePassedChecks = false;
+                }
+                if ($filePassedChecks) {
+                    $currentValue = DB::table($tableName)
+                        ->where('id', $rowId)
+                        ->select($columnName)
+                        ->first();
+                    DB::table($tableName)
+                        ->where('id', $rowId)
+                        ->update([
+                            $columnName => str($currentValue->$columnName)->replace($value, $mediaItem->id),
+                        ]);
+                    $this->info('Replacement made in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId . ' with value ' . $value . ' with ' . $mediaItem->id);
+                }
             } else {
-                $this->logMigrationFailure($value, $tableName, $columnName, $rowId);
+                $filePassedChecks = false;
+            }
+
+            if (!$filePassedChecks) {
+                $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
+                $this->failedToMigrate[] = [
+                    $tableName,
+                    $rowId,
+                    $columnName,
+                    $value
+                ];
+                $this->failedToMigrateCount++;
             }
         }
-    }
-
-    private function logMigrationFailure($value, $tableName, $columnName, $rowId)
-    {
-        $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
-        $this->failedToMigrateCount++;
     }
 }
