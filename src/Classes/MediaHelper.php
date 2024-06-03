@@ -63,7 +63,7 @@ class MediaHelper extends Command
             $mediaId = (int)$mediaId;
         }
 
-        $media = Cache::rememberForever('media-library-media-' . $mediaId, function () use ($mediaId, $conversion) {
+        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversion, function () use ($mediaId, $conversion) {
             $media = MediaLibraryItem::find($mediaId);
             $meta = $media->getMeta();
             $mediaItem = $media->getItem();

@@ -10,7 +10,6 @@
     $alt = $media->alt ?? $alt;
 @endphp
 <img
-    test
     src="{{ $url }}"
     alt="{{ $alt }}"
     loading="{{ $loading }}"
