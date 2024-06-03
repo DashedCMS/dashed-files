@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MigrateImagesInDatabase extends Command
@@ -18,18 +19,9 @@ class MigrateImagesInDatabase extends Command
     public $mediaLibraryItems;
     public int $failedToMigrateCount = 0;
 
-    public function handle(): int
+    private function getTablesToSkip(): array
     {
-        $startTime = now();
-
-        $mediaLibraryItems = MediaLibraryItem::all();
-        foreach ($mediaLibraryItems as $mediaLibraryItem) {
-            $mediaLibraryItem['file_name_to_match'] = basename($mediaLibraryItem->getItem()->getPath() ?? '');
-        }
-        $this->mediaLibraryItems = $mediaLibraryItems;
-
-        $tables = DB::select('SHOW TABLES');
-        $tablesToSkip = [
+        return [
             'activity_log',
             'dashed__url_history',
             'dashed__media_files',
@@ -51,8 +43,11 @@ class MigrateImagesInDatabase extends Command
             'dashed__not_found_pages',
             'dashed__not_found_page_occurrences',
         ];
+    }
 
-        $columnsToSkip = [
+    private function getColumnsToSkip(): array
+    {
+        return [
             'id',
             'name',
             'slug',
@@ -72,25 +67,36 @@ class MigrateImagesInDatabase extends Command
             'locale',
             'viewed',
         ];
+    }
+
+    public function handle(): int
+    {
+
+        $this->mediaLibraryItems = MediaLibraryItem::all()->map(function ($item) {
+            $item['file_name_to_match'] = basename($item->getItem()->getPath() ?? '');
+            return $item;
+        });
+
+        $tables = DB::select('SHOW TABLES');
+        $tablesToSkip = $this->getTablesToSkip();
+        $columnsToSkip = $this->getColumnsToSkip();
         $databaseName = DB::getDatabaseName();
 
         foreach ($tables as $table) {
             $tableName = $table->{"Tables_in_$databaseName"};
-            //            if ($tableName == 'dashed__translations') {
-            if (! in_array($tableName, $tablesToSkip)) {
+            if (!in_array($tableName, $tablesToSkip)) {
                 $this->info('Checking table: ' . $tableName);
 
                 // Get all columns of the table
                 $columns = Schema::getColumnListing($tableName);
 
                 $this->withProgressBar($columns, function ($column) use ($tableName, $columnsToSkip) {
-                    //                    if ($column == 'value') {
-                    if (! in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
+                    if (!in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
                         $this->info('checking column: ' . $column . ' in table: ' . $tableName);
-                        $rows = DB::table($tableName)->select('id', $column)->get();
-
-                        $this->withProgressBar($rows, function ($row) use ($column, $tableName) {
-                            $this->checkValueForImagePath($row->$column, $tableName, $column, $row->id);
+                        DB::table($tableName)->select('id', $column)->orderBy('id')->chunk(100, function ($rows) use ($column, $tableName) {
+                            foreach ($rows as $row) {
+                                $this->checkValueForImagePath($row->$column, $tableName, $column, $row->id);
+                            }
                         });
                     }
                 });
@@ -102,8 +108,6 @@ class MigrateImagesInDatabase extends Command
         } else {
             $this->info('All images migrated successfully');
         }
-
-        $this->info('Migration completed in ' . $startTime->diffForHumans(now()));
 
         return self::SUCCESS;
     }
@@ -131,37 +135,37 @@ class MigrateImagesInDatabase extends Command
         return (json_last_error() == JSON_ERROR_NONE);
     }
 
+    private function isLikelyFilePath($string): bool
+    {
+        $fileExtensions = [
+            'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'svg', 'ico', 'heic', 'heif', 'raw', 'psd', 'ai', 'eps', 'pdf'
+        ];
+
+        return (Str::contains($string, '/') || Str::contains($string, '\\')) && Str::endsWith(Str::lower($string), $fileExtensions);
+    }
+
     private function performAction($tableName, $columnName, $value, $rowId)
     {
-        try {
-            $fileExists = Storage::disk('dashed')->exists($value);
-            if(! str($value)->contains('/')) {
-                $fileExists = false;
-            }
-        } catch (Exception $exception) {
-            $fileExists = false;
-        }
-
-        if ($fileExists) {
+        if ($this->isLikelyFilePath($value) && Storage::disk('dashed')->exists($value)) {
             $fileToCheck = basename($value);
             if (str($fileToCheck)->length() > 200) {
-                $value = str(str($fileToCheck)->explode('/')->last())->substr(50);
+                $value = str($fileToCheck)->substr(50);
             }
-            if ($mediaItem = $this->mediaLibraryItems->where('file_name_to_match', basename($value))->first()) {
-                $currentValue = DB::table($tableName)
-                    ->where('id', $rowId)
-                    ->select($columnName)
-                    ->first();
-                DB::table($tableName)
-                    ->where('id', $rowId)
-                    ->update([
-                        $columnName => str($currentValue->$columnName)->replace($value, $mediaItem->id),
-                    ]);
-                //                $this->info('Replacement made in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId . ' with value ' . $value . ' with ' . $mediaItem->id);
+            $mediaItem = $this->mediaLibraryItems->firstWhere('file_name_to_match', basename($value));
+            if ($mediaItem) {
+                $currentValue = DB::table($tableName)->where('id', $rowId)->value($columnName);
+                DB::table($tableName)->where('id', $rowId)->update([
+                    $columnName => str($currentValue)->replace($value, $mediaItem->id),
+                ]);
             } else {
-                $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
-                $this->failedToMigrateCount++;
+                $this->logMigrationFailure($value, $tableName, $columnName, $rowId);
             }
         }
+    }
+
+    private function logMigrationFailure($value, $tableName, $columnName, $rowId)
+    {
+        $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
+        $this->failedToMigrateCount++;
     }
 }
