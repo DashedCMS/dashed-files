@@ -19,6 +19,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public function handle(): int
     {
+        $startTime = now();
 //                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
 //                MediaLibraryItem::all()->each(fn($item) => $item->delete());
 //                Media::all()->each(fn($media) => $media->delete());
@@ -92,6 +93,8 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             });
             $folderCount++;
         }
+
+        $this->info('Migration completed in ' . $startTime->diffForHumans(now()));
 
         return self::SUCCESS;
     }
