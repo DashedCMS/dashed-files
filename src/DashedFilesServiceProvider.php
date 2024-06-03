@@ -4,7 +4,6 @@ namespace Dashed\DashedFiles;
 
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
-use Illuminate\Support\Facades\Blade;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\LaravelPackageTools\Package;
