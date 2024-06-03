@@ -19,9 +19,9 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public function handle(): int
     {
-        //        MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
-        //        MediaLibraryItem::all()->each(fn($item) => $item->delete());
-        //        Media::all()->each(fn($media) => $media->delete());
+//                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
+//                MediaLibraryItem::all()->each(fn($item) => $item->delete());
+//                Media::all()->each(fn($media) => $media->delete());
 
         $mediaLibraryItems = MediaLibraryItem::all();
         foreach ($mediaLibraryItems as $mediaLibraryItem) {
@@ -60,9 +60,10 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             $folder->save();
         }
 
+        $folderCount = 1;
         foreach ($allFolders as $folder) {
             $this->info('Migrating files for folder: ' . $folder['folder']);
-            $this->withProgressBar(Storage::disk('dashed')->files('dashed/' . $folder['folder']), function ($file) use ($user, $folder) {
+            $this->withProgressBar(Storage::disk('dashed')->files('dashed/' . $folder['folder']), function ($file) use ($user, $folder, $allFolders, $folderCount) {
                 try {
                     if (! $this->mediaLibraryItems->where('file_name_to_match', basename($file))->first()) {
                         $filamentMediaLibraryItem = new MediaLibraryItem();
@@ -82,13 +83,14 @@ class MigrateFilesToSpatieMediaLibrary extends Command
                             ->addMediaFromDisk($file, 'dashed')
                             ->preservingOriginal()
                             ->toMediaCollection($filamentMediaLibraryItem->getMediaLibraryCollectionName());
-                        $this->info('File migrated: ' . $file);
+                        $this->info('File from folder ' . $folderCount . '/' . count($allFolders) . ' migrated: ' . $file);
                     }
                 } catch (\Exception $e) {
                     $this->error('Error migrating file: ' . $file);
                     $this->error($e->getMessage());
                 }
             });
+            $folderCount++;
         }
 
         return self::SUCCESS;
