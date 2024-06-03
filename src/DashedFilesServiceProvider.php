@@ -17,8 +17,6 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
-        Blade::componentNamespace('Dashed\\DashedFiles\\Views\\Components', 'media');
-
         MediaLibrary::registerMediaConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
             $mediaLibraryItem
                 ->addMediaConversion('huge')
