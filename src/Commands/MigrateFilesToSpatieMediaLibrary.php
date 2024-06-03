@@ -24,6 +24,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
         foreach ($directories as $dir) {
             $directories = array_merge($directories, $this->getAllDirectories($disk, $dir));
         }
+
         return $directories;
     }
 
@@ -39,7 +40,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             return $item;
         });
 
-//        $folders = Storage::disk('dashed')->allDirectories('dashed');
+        //        $folders = Storage::disk('dashed')->allDirectories('dashed');
         $folders = $this->getAllDirectories('dashed', 'dashed');
 
         $allFolders = [];

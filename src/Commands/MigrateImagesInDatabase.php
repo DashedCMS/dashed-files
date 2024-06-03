@@ -185,11 +185,11 @@ class MigrateImagesInDatabase extends Command
             $filePassedChecks = true;
             $fileToCheck = basename($value);
             if (str($fileToCheck)->length() > 200) {
-//                dump($value);
-//                $value = str(str($fileToCheck)->explode('/')->last())->substr(50);
+                //                dump($value);
+                //                $value = str(str($fileToCheck)->explode('/')->last())->substr(50);
                 $newFileName = str(str($value)->explode('/')->last())->substr(50);
                 $value = str($value)->replace($fileToCheck, $newFileName);
-//                dump($value);
+                //                dump($value);
             }
             if ($mediaItem = $this->mediaLibraryItems->where('file_name_to_match', basename($value))->first()) {
                 try {
@@ -198,7 +198,7 @@ class MigrateImagesInDatabase extends Command
                         $filePassedChecks = false;
                     }
                 } catch (Exception $exception) {
-//                    dump('error ' . $exception->getMessage());
+                    //                    dump('error ' . $exception->getMessage());
                     $filePassedChecks = false;
                 }
                 if ($filePassedChecks) {
@@ -214,7 +214,7 @@ class MigrateImagesInDatabase extends Command
                     $this->info('Replacement made in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId . ' with value ' . $value . ' with ' . $mediaItem->id);
                 }
             } else {
-//                dump('not matched in libraryMediaItems');
+                //                dump('not matched in libraryMediaItems');
                 $filePassedChecks = false;
             }
 
@@ -231,4 +231,3 @@ class MigrateImagesInDatabase extends Command
         }
     }
 }
-
