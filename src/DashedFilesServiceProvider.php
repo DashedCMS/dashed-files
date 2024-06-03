@@ -4,6 +4,7 @@ namespace Dashed\DashedFiles;
 
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
+use Illuminate\Support\Facades\Blade;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\LaravelPackageTools\Package;
@@ -16,6 +17,8 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
+        Blade::componentNamespace('Dashed\\DashedFiles\\Views\\Components', 'media');
+
         MediaLibrary::registerMediaConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
             $mediaLibraryItem
                 ->addMediaConversion('huge')
