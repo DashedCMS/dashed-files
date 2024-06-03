@@ -2,11 +2,13 @@
 
 namespace Dashed\DashedFiles\Commands;
 
+use Dashed\DashedCore\Models\Customsetting;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MigrateImagesInDatabase extends Command
@@ -81,7 +83,6 @@ class MigrateImagesInDatabase extends Command
 
         $this->mediaLibraryItems = MediaLibraryItem::all()->map(function ($item) {
             $item['file_name_to_match'] = basename($item->getItem()->getPath() ?? '');
-
             return $item;
         });
 
@@ -92,14 +93,14 @@ class MigrateImagesInDatabase extends Command
 
         foreach ($tables as $table) {
             $tableName = $table->{"Tables_in_$databaseName"};
-            if (! in_array($tableName, $tablesToSkip)) {
+            if (!in_array($tableName, $tablesToSkip)) {
                 $this->info('Checking table: ' . $tableName);
 
                 // Get all columns of the table
                 $columns = Schema::getColumnListing($tableName);
 
                 $this->withProgressBar($columns, function ($column) use ($tableName, $columnsToSkip) {
-                    if (! in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
+                    if (!in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
                         $this->info('checking column: ' . $column . ' in table: ' . $tableName);
                         DB::table($tableName)->select('id', $column)->orderBy('id')->chunk(100, function ($rows) use ($column, $tableName) {
                             foreach ($rows as $row) {
@@ -122,10 +123,8 @@ class MigrateImagesInDatabase extends Command
                 'Tabel',
                 'ID',
                 'Kolom',
-                'Waarde',
-            ],
-            $this->failedToMigrate
-        );
+                'Waarde'
+            ], $this->failedToMigrate);
 
         return self::SUCCESS;
     }
@@ -171,7 +170,7 @@ class MigrateImagesInDatabase extends Command
         if ($this->containsDotInLast10Chars($value)) {
             try {
                 $fileExists = Storage::disk('dashed')->exists($value);
-                if (! str($value)->contains('/')) {
+                if (!str($value)->contains('/')) {
                     $fileExists = false;
                 }
             } catch (Exception $exception) {
@@ -190,7 +189,7 @@ class MigrateImagesInDatabase extends Command
             if ($mediaItem = $this->mediaLibraryItems->where('file_name_to_match', basename($value))->first()) {
                 try {
                     $filePassedChecks = Storage::disk('dashed')->exists($mediaItem->getItem()->getPath());
-                    if (! str($value)->contains('/')) {
+                    if (!str($value)->contains('/')) {
                         $filePassedChecks = false;
                     }
                 } catch (Exception $exception) {
@@ -212,13 +211,13 @@ class MigrateImagesInDatabase extends Command
                 $filePassedChecks = false;
             }
 
-            if (! $filePassedChecks) {
+            if (!$filePassedChecks) {
                 $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
                 $this->failedToMigrate[] = [
                     $tableName,
                     $rowId,
                     $columnName,
-                    $value,
+                    $value
                 ];
                 $this->failedToMigrateCount++;
             }

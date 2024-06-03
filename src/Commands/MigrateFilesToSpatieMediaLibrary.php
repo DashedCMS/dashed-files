@@ -19,23 +19,21 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public function handle(): int
     {
-        $startTime = now();
-        //                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
-        //                MediaLibraryItem::all()->each(fn($item) => $item->delete());
-        //                Media::all()->each(fn($media) => $media->delete());
+//                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
+//                MediaLibraryItem::all()->each(fn($item) => $item->delete());
+//                Media::all()->each(fn($media) => $media->delete());
 
-        $mediaLibraryItems = MediaLibraryItem::all();
-        foreach ($mediaLibraryItems as $mediaLibraryItem) {
-            $mediaLibraryItem['file_name_to_match'] = basename($mediaLibraryItem->getItem()->getPath() ?? '');
-        }
-        $this->mediaLibraryItems = $mediaLibraryItems;
+        $this->mediaLibraryItems = MediaLibraryItem::all()->map(function ($item) {
+            $item['file_name_to_match'] = basename($item->getItem()->getPath() ?? '');
+            return $item;
+        });
 
         $folders = Storage::disk('dashed')->allDirectories('/dashed');
         $allFolders = [];
         $user = User::first();
 
         foreach ($folders as &$folder) {
-            if (! str($folder)->contains('__media-cache')) {
+            if (!str($folder)->contains('__media-cache')) {
                 $this->info('Migration started for folder: ' . $folder);
 
                 $folder = str($folder)->replace('dashed/', '');
@@ -66,7 +64,12 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             $this->info('Migrating files for folder: ' . $folder['folder']);
             $this->withProgressBar(Storage::disk('dashed')->files('dashed/' . $folder['folder']), function ($file) use ($user, $folder, $allFolders, $folderCount) {
                 try {
-                    if (! $this->mediaLibraryItems->where('file_name_to_match', basename($file))->first()) {
+                    $fileName = basename($file);
+                    if (str($fileName)->length() > 200) {
+                        $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
+                    }
+
+                    if (!$this->mediaLibraryItems->where('file_name_to_match', basename($file))->first() && !$this->mediaLibraryItems->where('file_name_to_match', basename($newFileName ?? 'not-known'))->first()) {
                         $filamentMediaLibraryItem = new MediaLibraryItem();
                         $filamentMediaLibraryItem->uploaded_by_user_id = $user->id;
                         $filamentMediaLibraryItem->folder_id = $folder['newFolderId'];
@@ -75,18 +78,21 @@ class MigrateFilesToSpatieMediaLibrary extends Command
                         $fileName = basename($file);
                         if (str($fileName)->length() > 200) {
                             $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
-                            if($this->mediaLibraryItems->where('file_name_to_match', basename($newFileName))->first()) {
-                                //Should skip
-                            }
                             $newFile = str($file)->replace($fileName, $newFileName);
                             Storage::disk('dashed')->copy($file, $newFile);
                             $file = $newFile;
                         }
 
-                        $filamentMediaLibraryItem
-                            ->addMediaFromDisk($file, 'dashed')
-                            ->preservingOriginal()
-                            ->toMediaCollection($filamentMediaLibraryItem->getMediaLibraryCollectionName());
+                        try {
+                            $filamentMediaLibraryItem
+                                ->addMediaFromDisk($file, 'dashed')
+                                ->preservingOriginal()
+                                ->toMediaCollection($filamentMediaLibraryItem->getMediaLibraryCollectionName());
+                        } catch (\Exception $e) {
+                            $this->error('migration failed for file: ' . $file);
+                            $this->error($e->getMessage());
+                            $filamentMediaLibraryItem->delete();
+                        }
                         $this->info('File from folder ' . $folderCount . '/' . count($allFolders) . ' migrated: ' . $file);
                     }
                 } catch (\Exception $e) {
@@ -96,8 +102,6 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             });
             $folderCount++;
         }
-
-        $this->info('Migration completed in ' . $startTime->diffForHumans(now()));
 
         return self::SUCCESS;
     }
