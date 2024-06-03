@@ -59,7 +59,7 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (!is_int($mediaId)) {
+        if (! is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
@@ -68,6 +68,7 @@ class MediaHelper extends Command
             $meta = $media->getMeta();
             $mediaItem = $media->getItem();
             $meta->url = $mediaItem->getAvailableUrl([$conversion]);
+
             return $meta;
         });
 
@@ -86,7 +87,7 @@ class MediaHelper extends Command
 
         $medias = [];
 
-        foreach($mediaIds as $id){
+        foreach($mediaIds as $id) {
             $medias[] = $this->getSingleImage($id, $conversion);
         }
 

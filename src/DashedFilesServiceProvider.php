@@ -2,11 +2,9 @@
 
 namespace Dashed\DashedFiles;
 
-use Closure;
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
-use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
