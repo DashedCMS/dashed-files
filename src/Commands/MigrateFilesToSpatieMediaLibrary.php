@@ -19,12 +19,13 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public function handle(): int
     {
-//                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
-//                MediaLibraryItem::all()->each(fn($item) => $item->delete());
-//                Media::all()->each(fn($media) => $media->delete());
+        //                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
+        //                MediaLibraryItem::all()->each(fn($item) => $item->delete());
+        //                Media::all()->each(fn($media) => $media->delete());
 
         $this->mediaLibraryItems = MediaLibraryItem::all()->map(function ($item) {
             $item['file_name_to_match'] = basename($item->getItem()->getPath() ?? '');
+
             return $item;
         });
 
@@ -33,7 +34,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
         $user = User::first();
 
         foreach ($folders as &$folder) {
-            if (!str($folder)->contains('__media-cache')) {
+            if (! str($folder)->contains('__media-cache')) {
                 $this->info('Migration started for folder: ' . $folder);
 
                 $folder = str($folder)->replace('dashed/', '');
@@ -69,7 +70,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
                         $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
                     }
 
-                    if (!$this->mediaLibraryItems->where('file_name_to_match', basename($file))->first() && !$this->mediaLibraryItems->where('file_name_to_match', basename($newFileName ?? 'not-known'))->first()) {
+                    if (! $this->mediaLibraryItems->where('file_name_to_match', basename($file))->first() && ! $this->mediaLibraryItems->where('file_name_to_match', basename($newFileName ?? 'not-known'))->first()) {
                         $filamentMediaLibraryItem = new MediaLibraryItem();
                         $filamentMediaLibraryItem->uploaded_by_user_id = $user->id;
                         $filamentMediaLibraryItem->folder_id = $folder['newFolderId'];
