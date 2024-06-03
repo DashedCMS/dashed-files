@@ -19,9 +19,9 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
     public function handle(): int
     {
-//                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
-//                MediaLibraryItem::all()->each(fn($item) => $item->delete());
-//                Media::all()->each(fn($media) => $media->delete());
+        //                MediaLibraryFolder::all()->each(fn($folder) => $folder->delete());
+        //                MediaLibraryItem::all()->each(fn($item) => $item->delete());
+        //                Media::all()->each(fn($media) => $media->delete());
 
         $mediaLibraryItems = MediaLibraryItem::all();
         foreach ($mediaLibraryItems as $mediaLibraryItem) {
