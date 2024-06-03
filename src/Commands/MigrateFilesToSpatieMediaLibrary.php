@@ -75,8 +75,8 @@ class MigrateFilesToSpatieMediaLibrary extends Command
                         $fileName = basename($file);
                         if (str($fileName)->length() > 200) {
                             $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
-                            if($this->mediaLibraryItems->where('file_name_to_match', basename($newFileName))->first()){
-                            //Should skip
+                            if($this->mediaLibraryItems->where('file_name_to_match', basename($newFileName))->first()) {
+                                //Should skip
                             }
                             $newFile = str($file)->replace($fileName, $newFileName);
                             Storage::disk('dashed')->copy($file, $newFile);

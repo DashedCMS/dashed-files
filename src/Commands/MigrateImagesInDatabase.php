@@ -2,7 +2,6 @@
 
 namespace Dashed\DashedFiles\Commands;
 
-use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -74,6 +73,7 @@ class MigrateImagesInDatabase extends Command
 
         $this->mediaLibraryItems = MediaLibraryItem::all()->map(function ($item) {
             $item['file_name_to_match'] = basename($item->getItem()->getPath() ?? '');
+
             return $item;
         });
 
@@ -84,14 +84,14 @@ class MigrateImagesInDatabase extends Command
 
         foreach ($tables as $table) {
             $tableName = $table->{"Tables_in_$databaseName"};
-            if (!in_array($tableName, $tablesToSkip)) {
+            if (! in_array($tableName, $tablesToSkip)) {
                 $this->info('Checking table: ' . $tableName);
 
                 // Get all columns of the table
                 $columns = Schema::getColumnListing($tableName);
 
                 $this->withProgressBar($columns, function ($column) use ($tableName, $columnsToSkip) {
-                    if (!in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
+                    if (! in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
                         $this->info('checking column: ' . $column . ' in table: ' . $tableName);
                         DB::table($tableName)->select('id', $column)->orderBy('id')->chunk(100, function ($rows) use ($column, $tableName) {
                             foreach ($rows as $row) {
@@ -138,7 +138,7 @@ class MigrateImagesInDatabase extends Command
     private function isLikelyFilePath($string): bool
     {
         $fileExtensions = [
-            'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'svg', 'ico', 'heic', 'heif', 'raw', 'psd', 'ai', 'eps', 'pdf'
+            'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'svg', 'ico', 'heic', 'heif', 'raw', 'psd', 'ai', 'eps', 'pdf',
         ];
 
         return (Str::contains($string, '/') || Str::contains($string, '\\')) && Str::endsWith(Str::lower($string), $fileExtensions);
