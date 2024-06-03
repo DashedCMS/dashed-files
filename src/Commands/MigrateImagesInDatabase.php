@@ -20,6 +20,8 @@ class MigrateImagesInDatabase extends Command
 
     public function handle(): int
     {
+        $startTime = now();
+
         $mediaLibraryItems = MediaLibraryItem::all();
         foreach ($mediaLibraryItems as $mediaLibraryItem) {
             $mediaLibraryItem['file_name_to_match'] = basename($mediaLibraryItem->getItem()->getPath() ?? '');
@@ -100,6 +102,8 @@ class MigrateImagesInDatabase extends Command
         } else {
             $this->info('All images migrated successfully');
         }
+
+        $this->info('Migration completed in ' . $startTime->diffForHumans(now()));
 
         return self::SUCCESS;
     }
