@@ -25,8 +25,8 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             $directories = array_merge($directories, $this->getAllDirectories($disk, $dir));
         }
 
-        foreach($directories as $key => $directory){
-            if(str($directory)->contains(['dashed/invoices', 'dashed/packing-slips'])){
+        foreach($directories as $key => $directory) {
+            if(str($directory)->contains(['dashed/invoices', 'dashed/packing-slips'])) {
                 unset($directories[$key]);
             }
         }
