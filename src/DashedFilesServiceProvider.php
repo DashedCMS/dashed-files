@@ -2,8 +2,12 @@
 
 namespace Dashed\DashedFiles;
 
+use Dashed\DashedCore\Commands\CreateSitemap;
+use Dashed\DashedCore\Commands\InvalidatePasswordResetTokens;
+use Dashed\DashedCore\Commands\RunUrlHistoryCheckCommand;
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
+use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\LaravelPackageTools\Package;
@@ -37,6 +41,14 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 ->addMediaConversion('tiny')
                 ->format('webp')
                 ->width(200);
+        });
+    }
+
+    public function packageBooted()
+    {
+        $this->app->booted(function () {
+            $schedule = app(Schedule::class);
+            $schedule->command('media-library:delete-old-temporary-uploads')->daily();
         });
     }
 
