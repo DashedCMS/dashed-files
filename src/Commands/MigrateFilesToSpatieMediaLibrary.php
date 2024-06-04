@@ -48,7 +48,6 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
         //        $folders = Storage::disk('dashed')->allDirectories('dashed');
         $folders = $this->getAllDirectories('dashed', 'dashed');
-        dd($folders);
 
         $allFolders = [];
         $user = User::first();
