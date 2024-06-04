@@ -25,6 +25,12 @@ class MigrateFilesToSpatieMediaLibrary extends Command
             $directories = array_merge($directories, $this->getAllDirectories($disk, $dir));
         }
 
+        foreach($directories as $key => $directory){
+            if(str($directory)->contains(['dashed/invoices', 'dashed/packing-slips'])){
+                unset($directories[$key]);
+            }
+        }
+
         return $directories;
     }
 
@@ -42,6 +48,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
 
         //        $folders = Storage::disk('dashed')->allDirectories('dashed');
         $folders = $this->getAllDirectories('dashed', 'dashed');
+        dd($folders);
 
         $allFolders = [];
         $user = User::first();

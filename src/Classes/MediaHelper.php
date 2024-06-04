@@ -56,10 +56,10 @@ class MediaHelper extends Command
             ->slug('media-browser');
     }
 
-    public function getSingleImage(int|string|array $mediaId, string $conversion = 'thumb'): ?MediaItemMeta
+    public function getSingleImage(int|string|array $mediaId, string $conversion = 'thumb'): string|MediaItemMeta
     {
         if (is_string($mediaId) && filter_var($mediaId, FILTER_VALIDATE_INT) === false) {
-            return null;
+            return $mediaId;
         }
 
         if (is_array($mediaId)) {
