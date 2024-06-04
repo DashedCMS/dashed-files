@@ -2,9 +2,6 @@
 
 namespace Dashed\DashedFiles;
 
-use Dashed\DashedCore\Commands\CreateSitemap;
-use Dashed\DashedCore\Commands\InvalidatePasswordResetTokens;
-use Dashed\DashedCore\Commands\RunUrlHistoryCheckCommand;
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
 use Illuminate\Console\Scheduling\Schedule;
