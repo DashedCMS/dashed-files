@@ -9,6 +9,7 @@ use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
 use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
+use Spatie\MediaLibrary\Conversions\Conversion;
 
 class MediaHelper extends Command
 {
@@ -40,9 +41,15 @@ class MediaHelper extends Command
             ->pageTitle('Media Browser')
             ->acceptPdf()
             ->acceptVideo()
+            ->conversionResponsive(enabled: true, modifyUsing: function (Conversion $conversion)  {
+                // Apply any modifications you want to the conversion, or omit to use defaults...
+                return $conversion->format('webp');
+            })
             ->conversionMedium(enabled: false)
             ->conversionSmall(enabled: false)
-            ->conversionThumb(enabled: true, width: 600, height: 600)
+            ->conversionThumb(enabled: true, width: 600, height: 600, modifyUsing: function (Conversion $conversion) {
+                return $conversion->format('webp');
+            })
             ->firstAvailableUrlConversions([
                 'thumb',
             ])

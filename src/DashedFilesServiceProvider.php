@@ -19,18 +19,23 @@ class DashedFilesServiceProvider extends PackageServiceProvider
         MediaLibrary::registerMediaConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
             $mediaLibraryItem
                 ->addMediaConversion('huge')
+                ->format('webp')
                 ->width(1600);
             $mediaLibraryItem
                 ->addMediaConversion('large')
+                ->format('webp')
                 ->width(1200);
             $mediaLibraryItem
                 ->addMediaConversion('medium')
+                ->format('webp')
                 ->width(800);
             $mediaLibraryItem
                 ->addMediaConversion('small')
+                ->format('webp')
                 ->width(400);
             $mediaLibraryItem
                 ->addMediaConversion('tiny')
+                ->format('webp')
                 ->width(200);
         });
     }
