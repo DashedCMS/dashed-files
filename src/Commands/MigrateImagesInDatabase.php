@@ -11,14 +11,13 @@ use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MigrateImagesInDatabase extends Command
 {
-    public $signature = 'dashed:migrate-images-in-database';
+    public $signature = 'dashed:migrate-images-in-database  {--empty-not-found}';
 
     public $description = 'Migrate images in database';
 
     public $mediaLibraryItems;
     public int $failedToMigrateCount = 0;
-    public array $failedToMigrate = [
-    ];
+    public array $failedToMigrate = [];
 
     private function getTablesToSkip(): array
     {
@@ -92,14 +91,14 @@ class MigrateImagesInDatabase extends Command
 
         foreach ($tables as $table) {
             $tableName = $table->{"Tables_in_$databaseName"};
-            if (! in_array($tableName, $tablesToSkip)) {
+            if (!in_array($tableName, $tablesToSkip)) {
                 $this->info('Checking table: ' . $tableName);
 
                 // Get all columns of the table
                 $columns = Schema::getColumnListing($tableName);
 
                 $this->withProgressBar($columns, function ($column) use ($tableName, $columnsToSkip) {
-                    if (! in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
+                    if (!in_array($column, $columnsToSkip) || str($column)->endsWith('_id')) {
                         $this->info('checking column: ' . $column . ' in table: ' . $tableName);
                         DB::table($tableName)->select('id', $column)->orderBy('id')->chunk(100, function ($rows) use ($column, $tableName) {
                             foreach ($rows as $row) {
@@ -171,7 +170,7 @@ class MigrateImagesInDatabase extends Command
         if ($this->containsDotInLast10Chars($value)) {
             try {
                 $fileExists = Storage::disk('dashed')->exists($value);
-                if (! str($value)->contains('/')) {
+                if (!str($value)->contains('/')) {
                     $fileExists = false;
                 }
             } catch (Exception $exception) {
@@ -194,7 +193,7 @@ class MigrateImagesInDatabase extends Command
             if ($mediaItem = $this->mediaLibraryItems->where('file_name_to_match', basename($value))->first()) {
                 try {
                     $filePassedChecks = Storage::disk('dashed')->exists($mediaItem->getItem()->getPath());
-                    if (! str($value)->contains('/')) {
+                    if (!str($value)->contains('/')) {
                         $filePassedChecks = false;
                     }
                 } catch (Exception $exception) {
@@ -218,15 +217,28 @@ class MigrateImagesInDatabase extends Command
                 $filePassedChecks = false;
             }
 
-            if (! $filePassedChecks) {
-                $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
-                $this->failedToMigrate[] = [
-                    $tableName,
-                    $rowId,
-                    $columnName,
-                    $value,
-                ];
-                $this->failedToMigrateCount++;
+            if (!$filePassedChecks) {
+                $emptyNotFound = $this->option('empty-not-found');
+                if ($emptyNotFound) {
+                    $currentValue = DB::table($tableName)
+                        ->where('id', $rowId)
+                        ->select($columnName)
+                        ->first();
+                    DB::table($tableName)
+                        ->where('id', $rowId)
+                        ->update([
+                            $columnName => str($currentValue->$columnName)->replace($value, ''),
+                        ]);
+                } else {
+                    $this->error('Media item not found for ' . $value . ' in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId);
+                    $this->failedToMigrate[] = [
+                        $tableName,
+                        $rowId,
+                        $columnName,
+                        $value,
+                    ];
+                    $this->failedToMigrateCount++;
+                }
             }
         }
     }
