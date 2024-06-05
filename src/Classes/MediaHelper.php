@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
 use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\MediaLibrary\Conversions\Conversion;
 
@@ -66,7 +67,7 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (! is_int($mediaId)) {
+        if (!is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
@@ -74,7 +75,9 @@ class MediaHelper extends Command
             $media = MediaLibraryItem::find($mediaId);
             $meta = $media->getMeta();
             $mediaItem = $media->getItem();
-            $meta->url = $mediaItem->getAvailableUrl([$conversion]);
+            if ($conversion != 'original') {
+                $meta->url = $mediaItem->getAvailableUrl([$conversion]);
+            }
 
             return $meta;
         });
@@ -94,10 +97,81 @@ class MediaHelper extends Command
 
         $medias = [];
 
-        foreach($mediaIds as $id) {
+        foreach ($mediaIds as $id) {
             $medias[] = $this->getSingleImage($id, $conversion);
         }
 
         return collect($medias);
+    }
+
+    public function getFolderId($folder): int
+    {
+        $folders = str($folder)->explode('/');
+        $parentId = null;
+
+        foreach ($folders as $folder) {
+            $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
+            if (!$mediaFolder) {
+                $mediaFolder = new MediaLibraryFolder();
+                $mediaFolder->name = $folder;
+                $mediaFolder->parent_id = $parentId;
+                $mediaFolder->save();
+            }
+            $parentId = $mediaFolder->id;
+        }
+
+        return $folder->id;
+    }
+
+    public function getFileId(string $file, ?int $folderId = null): ?int
+    {
+        foreach(MediaLibraryItem::where('folder_id', $folderId)->get() as $media) {
+            if (str($media->getItem()->getPath())->endsWith($file)) {
+                return $media->id;
+            }
+        }
+
+        return null;
+    }
+
+    public function uploadFromPath($path, $folder): ?int
+    {
+        $folderId = $this->getFolderId($folder);
+
+        if($existingFile = $this->getFileId($path, $folderId)) {
+            return $existingFile;
+        }
+
+        try {
+            $filamentMediaLibraryItem = new MediaLibraryItem();
+            $filamentMediaLibraryItem->uploaded_by_user_id = null;
+            $filamentMediaLibraryItem->folder_id = $folderId;
+            $filamentMediaLibraryItem->save();
+
+            $fileName = basename($path);
+//            if (str($fileName)->length() > 200) {
+//                $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
+//                $newFile = str($file)->replace($fileName, $newFileName);
+//                Storage::disk('dashed')->copy($file, $newFile);
+//                $file = $newFile;
+//            }
+
+            try {
+                $filamentMediaLibraryItem
+                    ->addMediaFromDisk($path, 'dashed')
+                    ->preservingOriginal()
+                    ->toMediaCollection($filamentMediaLibraryItem->getMediaLibraryCollectionName());
+            } catch (\Exception $e) {
+                $filamentMediaLibraryItem->delete();
+                return null;
+            }
+
+            return $filamentMediaLibraryItem->id;
+
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        return null;
     }
 }
