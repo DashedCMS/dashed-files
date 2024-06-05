@@ -90,7 +90,7 @@ class MediaHelper extends Command
         return $media;
     }
 
-    public function getMultipleImages(array $mediaIds, string $conversion = 'thumb'): ?Collection
+    public function getMultipleImages(array $mediaIds, string $conversion = 'medium'): ?Collection
     {
         if (is_string($mediaIds)) {
             return null;
