@@ -67,7 +67,7 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (!is_int($mediaId)) {
+        if (! is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
@@ -116,7 +116,7 @@ class MediaHelper extends Command
 
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
-            if (!$mediaFolder) {
+            if (! $mediaFolder) {
                 $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
@@ -155,12 +155,12 @@ class MediaHelper extends Command
             $filamentMediaLibraryItem->save();
 
             $fileName = basename($path);
-//            if (str($fileName)->length() > 200) {
-//                $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
-//                $newFile = str($file)->replace($fileName, $newFileName);
-//                Storage::disk('dashed')->copy($file, $newFile);
-//                $file = $newFile;
-//            }
+            //            if (str($fileName)->length() > 200) {
+            //                $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
+            //                $newFile = str($file)->replace($fileName, $newFileName);
+            //                Storage::disk('dashed')->copy($file, $newFile);
+            //                $file = $newFile;
+            //            }
 
             try {
                 $filamentMediaLibraryItem
@@ -169,6 +169,7 @@ class MediaHelper extends Command
                     ->toMediaCollection($filamentMediaLibraryItem->getMediaLibraryCollectionName());
             } catch (\Exception $e) {
                 $filamentMediaLibraryItem->delete();
+
                 return null;
             }
 
