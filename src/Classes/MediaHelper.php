@@ -67,19 +67,24 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (! is_int($mediaId)) {
+        if (!is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
         $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversion, function () use ($mediaId, $conversion) {
             $media = MediaLibraryItem::find($mediaId);
-            $meta = $media->getMeta();
             $mediaItem = $media->getItem();
-            if ($conversion != 'original') {
-                $meta->url = $mediaItem->getAvailableUrl([$conversion]);
+            if ($mediaItem->mime_type === 'image/svg+xml') {
+                $conversion = 'original';
+            }
+            $media = $media->getMeta();
+            if ($conversion == 'original') {
+                $media->url = $media->full_url;
+            } else {
+                $media->url = $mediaItem->getAvailableUrl([$conversion]);
             }
 
-            return $meta;
+            return $media;
         });
 
         return $media;
@@ -111,7 +116,7 @@ class MediaHelper extends Command
 
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
-            if (! $mediaFolder) {
+            if (!$mediaFolder) {
                 $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
@@ -125,7 +130,7 @@ class MediaHelper extends Command
 
     public function getFileId(string $file, ?int $folderId = null): ?int
     {
-        foreach(MediaLibraryItem::where('folder_id', $folderId)->get() as $media) {
+        foreach (MediaLibraryItem::where('folder_id', $folderId)->get() as $media) {
             if (str($media->getItem()->getPath())->endsWith($file)) {
                 return $media->id;
             }
@@ -138,7 +143,7 @@ class MediaHelper extends Command
     {
         $folderId = $this->getFolderId($folder);
 
-        if($existingFile = $this->getFileId($path, $folderId)) {
+        if ($existingFile = $this->getFileId($path, $folderId)) {
             return $existingFile;
         }
 
@@ -150,12 +155,12 @@ class MediaHelper extends Command
             $filamentMediaLibraryItem->save();
 
             $fileName = basename($path);
-            //            if (str($fileName)->length() > 200) {
-            //                $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
-            //                $newFile = str($file)->replace($fileName, $newFileName);
-            //                Storage::disk('dashed')->copy($file, $newFile);
-            //                $file = $newFile;
-            //            }
+//            if (str($fileName)->length() > 200) {
+//                $newFileName = str(str($fileName)->explode('/')->last())->substr(50);
+//                $newFile = str($file)->replace($fileName, $newFileName);
+//                Storage::disk('dashed')->copy($file, $newFile);
+//                $file = $newFile;
+//            }
 
             try {
                 $filamentMediaLibraryItem
@@ -164,7 +169,6 @@ class MediaHelper extends Command
                     ->toMediaCollection($filamentMediaLibraryItem->getMediaLibraryCollectionName());
             } catch (\Exception $e) {
                 $filamentMediaLibraryItem->delete();
-
                 return null;
             }
 
