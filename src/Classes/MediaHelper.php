@@ -78,6 +78,7 @@ class MediaHelper extends Command
                 $conversion = 'original';
             }
             $media = $media->getMeta();
+            $media->path = $mediaItem->getPath();
             if ($conversion == 'original') {
                 $media->url = $media->full_url;
             } else {
