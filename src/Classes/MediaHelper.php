@@ -57,7 +57,17 @@ class MediaHelper extends Command
             ->slug('media-browser');
     }
 
+    /**
+     * @deprecated
+     *
+     * @return $this
+     */
     public function getSingleImage(int|string|array $mediaId, string $conversion = 'medium'): string|MediaItemMeta
+    {
+        return $this->getSingleMedia($mediaId, $conversion);
+    }
+
+    public function getSingleMedia(int|string|array $mediaId, string $conversion = 'medium'): string|MediaItemMeta
     {
         if (is_string($mediaId) && filter_var($mediaId, FILTER_VALIDATE_INT) === false) {
             return $mediaId;
@@ -91,7 +101,7 @@ class MediaHelper extends Command
         return $media;
     }
 
-    public function getMultipleImages(array $mediaIds, string $conversion = 'medium'): ?Collection
+    public function getMultipleMedia(array $mediaIds, string $conversion = 'medium'): ?Collection
     {
         if (is_string($mediaIds)) {
             return null;
@@ -104,7 +114,7 @@ class MediaHelper extends Command
         $medias = [];
 
         foreach ($mediaIds as $id) {
-            $medias[] = $this->getSingleImage($id, $conversion);
+            $medias[] = $this->getSingleMedia($id, $conversion);
         }
 
         return collect($medias);
