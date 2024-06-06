@@ -3,6 +3,7 @@
     'loading' => Customsetting::get('image_force_lazy_load', null, false) ? 'lazy' : 'eager',
     'mediaId',
     'conversion' => 'medium',
+    'manipulations' => [],
 ])
 @php
     $media = mediaHelper()->getSingleImage($mediaId, $conversion);
