@@ -67,7 +67,7 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (!is_int($mediaId)) {
+        if (! is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
@@ -117,7 +117,7 @@ class MediaHelper extends Command
 
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
-            if (!$mediaFolder) {
+            if (! $mediaFolder) {
                 $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
