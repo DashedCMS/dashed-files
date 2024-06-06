@@ -62,12 +62,12 @@ class MediaHelper extends Command
      *
      * @return $this
      */
-    public function getSingleImage(int|string|array $mediaId, string $conversion = 'medium'): string|MediaItemMeta
+    public function getSingleImage(int|string|array $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
     {
         return $this->getSingleMedia($mediaId, $conversion);
     }
 
-    public function getSingleMedia(int|string|array $mediaId, string $conversion = 'medium'): string|MediaItemMeta
+    public function getSingleMedia(int|string|array $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
     {
         if (is_string($mediaId) && filter_var($mediaId, FILTER_VALIDATE_INT) === false) {
             return $mediaId;
@@ -79,6 +79,11 @@ class MediaHelper extends Command
 
         if (! is_int($mediaId)) {
             $mediaId = (int)$mediaId;
+        }
+
+        if(is_array($conversion)){
+            //Todo: save in database, let it create
+            $conversion = 'medium';
         }
 
         $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversion, function () use ($mediaId, $conversion) {
