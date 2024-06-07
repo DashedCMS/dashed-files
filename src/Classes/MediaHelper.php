@@ -58,9 +58,9 @@ class MediaHelper extends Command
     }
 
     /**
+     * @return $this
      * @deprecated
      *
-     * @return $this
      */
     public function getSingleImage(int|string|array $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
     {
@@ -77,31 +77,50 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (! is_int($mediaId)) {
+        if (!is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
-        if(is_array($conversion)) {
-            //Todo: save in database, let it create
-            $conversion = 'medium';
+//        dump($conversion);
+
+        $conversionName = $this->getConversionName($conversion);
+
+//        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion) {
+        $media = MediaLibraryItem::find($mediaId);
+
+        if (is_array($conversion)) {
+            $hasCurrentConversion = false;
+            $currentRegisteredConversions = json_decode($media->conversions ?: '{}', true);
+            foreach ($currentRegisteredConversions as $registeredConversion) {
+                if ($registeredConversion === $conversion) {
+                    $hasCurrentConversion = true;
+                }
+            }
+            if (!$hasCurrentConversion) {
+                $currentRegisteredConversions[] = $conversion;
+                $media->conversions = json_encode($currentRegisteredConversions);
+                $media->save();
+            }
         }
 
-        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversion, function () use ($mediaId, $conversion) {
-            $media = MediaLibraryItem::find($mediaId);
-            $mediaItem = $media->getItem();
-            if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4'])) {
-                $conversion = 'original';
+        $mediaItem = $media->getItem();
+        if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4'])) {
+            $conversion = 'original';
+        }
+        $media = $media->getMeta();
+        $media->path = $mediaItem->getPath();
+        if ($conversionName == 'original') {
+            $media->url = $media->full_url;
+        } else {
+            if (!array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
+//                dd($conversion, $conversionName, $mediaItem->generated_conversions);
+                //Todo: check if conversion exists, if not, dispatch job to create it
             }
-            $media = $media->getMeta();
-            $media->path = $mediaItem->getPath();
-            if ($conversion == 'original') {
-                $media->url = $media->full_url;
-            } else {
-                $media->url = $mediaItem->getAvailableUrl([$conversion]);
-            }
+            $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
+        }
 
-            return $media;
-        });
+        return $media;
+//        });
 
         return $media;
     }
@@ -125,6 +144,30 @@ class MediaHelper extends Command
         return collect($medias);
     }
 
+    public function getConversionName(string|array $conversion, $isChild = false): string
+    {
+        if (is_array($conversion)) {
+            $conversionString = '';
+            foreach ($conversion as $key => $conv) {
+                if (!is_int($key)) {
+                    $conversionString .= "$key-";
+                }
+                if ($isChild) {
+                    $conversionString .= '-';
+                }
+                if (is_array($conv)) {
+                    $conversionString .= $this->getConversionName($conv, true);
+                } else {
+                    $conversionString .= "$conv";
+                }
+            }
+
+            return str($conversionString)->replace('--', '-');
+        }
+
+        return $conversion;
+    }
+
     public function getFolderId($folder): int
     {
         $folders = str($folder)->explode('/');
@@ -132,7 +175,7 @@ class MediaHelper extends Command
 
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
-            if (! $mediaFolder) {
+            if (!$mediaFolder) {
                 $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
