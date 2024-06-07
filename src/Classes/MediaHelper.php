@@ -89,7 +89,7 @@ class MediaHelper extends Command
 
         $conversionName = $this->getConversionName($conversion);
 
-        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion) {
+        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion, $conversionName) {
             $media = MediaLibraryItem::find($mediaId);
 
             if (is_array($conversion)) {
