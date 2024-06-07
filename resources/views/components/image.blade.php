@@ -6,7 +6,7 @@
     'manipulations' => [],
 ])
 @php
-    $media = mediaHelper()->getSingleMedia($mediaId, $conversion);
+    $media = mediaHelper()->getSingleMedia($mediaId, $manipulations ?: $conversion);
     $url = $media->url ?? '';
     $alt = $media->alt ?? $alt;
 @endphp

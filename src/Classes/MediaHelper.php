@@ -81,7 +81,7 @@ class MediaHelper extends Command
             $mediaId = (int)$mediaId;
         }
 
-        if(is_array($conversion)) {
+        if(is_array($conversion)){
             //Todo: save in database, let it create
             $conversion = 'medium';
         }
