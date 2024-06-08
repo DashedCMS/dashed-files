@@ -29,7 +29,7 @@ class MigrateImagesToNewPath extends Command
 
     public function handle(): int
     {
-        MediaLibraryItem::all()->map(function ($item) {
+        $this->withProgressBar(MediaLibraryItem::all(), function ($item) {
             $mediaItem = $item->getItem();
             $oldPath = trim(rtrim($this->getOldPath($mediaItem), '/'), '/');
             $oldPathFile = $oldPath . '/' . $mediaItem->name;
