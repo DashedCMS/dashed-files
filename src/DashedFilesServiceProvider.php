@@ -4,6 +4,7 @@ namespace Dashed\DashedFiles;
 
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
+use Dashed\DashedFiles\Observers\MediaLibraryitemObserver;
 use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
@@ -39,6 +40,8 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 ->format('webp')
                 ->width(200);
         });
+
+//        MediaLibraryItem::observe(MediaLibraryItemObserver::class);
     }
 
     public function packageBooted()

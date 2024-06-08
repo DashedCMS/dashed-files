@@ -89,7 +89,7 @@ class MediaHelper extends Command
 
         $conversionName = $this->getConversionName($conversion);
 
-        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion, $conversionName) {
+//        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion, $conversionName) {
             $media = MediaLibraryItem::find($mediaId);
 
             if (is_array($conversion)) {
@@ -124,7 +124,7 @@ class MediaHelper extends Command
             }
 
             return $media;
-        });
+//        });
 
         return $media;
     }
@@ -170,6 +170,20 @@ class MediaHelper extends Command
         }
 
         return $conversion;
+    }
+
+    public function getFolderPath(?int $folderId = null): string
+    {
+        $folder = MediaLibraryFolder::find($folderId);
+        $path = '/';
+
+        if($folder) {
+            foreach($folder->getAncestors() as $ancestor) {
+                $path .= $ancestor->name . '/';
+            }
+        }
+
+        return trim(rtrim($path, '/'), '/');
     }
 
     public function getFolderId($folder): int
