@@ -9,16 +9,16 @@ class DashedPathGenerator implements PathGenerator
 {
     public function getPath(Media $media): string
     {
-//        $path = '/';
-//
-//        if($media->model->folder ?? false) {
-//            foreach($media->model->folder->getAncestors() as $ancestor) {
-//                $path .= $ancestor->name . '/';
-//            }
-//        }
+        //        $path = '/';
+        //
+        //        if($media->model->folder ?? false) {
+        //            foreach($media->model->folder->getAncestors() as $ancestor) {
+        //                $path .= $ancestor->name . '/';
+        //            }
+        //        }
 
         return $media->uuid . '-' . basename($media->name) . '/';
-//        return $path . basename($media->name) . '/';
+        //        return $path . basename($media->name) . '/';
     }
 
     public function getPathForConversions(Media $media): string

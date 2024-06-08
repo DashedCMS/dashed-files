@@ -13,19 +13,19 @@ class MediaLibraryitemObserver
         $files = Storage::disk('dashed')->allFiles($source);
         foreach ($files as $file) {
             $newFile = str_replace($source, $destination, $file);
-//            dump($file, $newFile);
+            //            dump($file, $newFile);
             Storage::disk('dashed')->move($file, $newFile);
         }
-//        dd($files, $source, $destination);
-//        dd($files);
+        //        dd($files, $source, $destination);
+        //        dd($files);
 
-//        // Get all directories from the source directory
-//        $directories = Storage::disk('dashed')->allDirectories($source);
-//        foreach ($directories as $directory) {
-//            $newDirectory = str_replace($source, $destination, $directory);
-//            Storage::disk('dashed')->makeDirectory($newDirectory);
-//            $this->copyDirectoryContents($directory, $newDirectory); // Recursively copy subdirectories
-//        }
+        //        // Get all directories from the source directory
+        //        $directories = Storage::disk('dashed')->allDirectories($source);
+        //        foreach ($directories as $directory) {
+        //            $newDirectory = str_replace($source, $destination, $directory);
+        //            Storage::disk('dashed')->makeDirectory($newDirectory);
+        //            $this->copyDirectoryContents($directory, $newDirectory); // Recursively copy subdirectories
+        //        }
     }
 
     public function updated(MediaLibraryItem $mediaLibraryItem)
@@ -40,7 +40,7 @@ class MediaLibraryitemObserver
             dump($sourceDirectory, $destinationDirectory);
             if (Storage::disk('dashed')->exists($sourceDirectory)) {
                 // Ensure the destination directory exists
-                if (!Storage::disk('dashed')->exists($destinationDirectory)) {
+                if (! Storage::disk('dashed')->exists($destinationDirectory)) {
                     Storage::disk('dashed')->makeDirectory($destinationDirectory);
                 }
 

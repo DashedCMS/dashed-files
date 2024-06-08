@@ -89,42 +89,42 @@ class MediaHelper extends Command
 
         $conversionName = $this->getConversionName($conversion);
 
-//        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion, $conversionName) {
-            $media = MediaLibraryItem::find($mediaId);
+        //        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion, $conversionName) {
+        $media = MediaLibraryItem::find($mediaId);
 
-            if (is_array($conversion)) {
-                $hasCurrentConversion = false;
-                $currentRegisteredConversions = json_decode($media->conversions ?: '{}', true);
-                foreach ($currentRegisteredConversions as $registeredConversion) {
-                    if ($registeredConversion === $conversion) {
-                        $hasCurrentConversion = true;
-                    }
-                }
-                if (! $hasCurrentConversion) {
-                    $currentRegisteredConversions[] = $conversion;
-                    $media->conversions = json_encode($currentRegisteredConversions);
-                    $media->save();
+        if (is_array($conversion)) {
+            $hasCurrentConversion = false;
+            $currentRegisteredConversions = json_decode($media->conversions ?: '{}', true);
+            foreach ($currentRegisteredConversions as $registeredConversion) {
+                if ($registeredConversion === $conversion) {
+                    $hasCurrentConversion = true;
                 }
             }
-
-            $mediaItem = $media->getItem();
-            if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4'])) {
-                $conversionName = 'original';
+            if (! $hasCurrentConversion) {
+                $currentRegisteredConversions[] = $conversion;
+                $media->conversions = json_encode($currentRegisteredConversions);
+                $media->save();
             }
-            $media = $media->getMeta();
-            $media->path = $mediaItem->getPath();
-            if ($conversionName == 'original') {
-                $media->url = $media->full_url;
-            } else {
-                if (! array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
-                    //                dd($conversion, $conversionName, $mediaItem->generated_conversions);
-                    //Todo: check if conversion exists, if not, dispatch job to create it
-                }
-                $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
-            }
+        }
 
-            return $media;
-//        });
+        $mediaItem = $media->getItem();
+        if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4'])) {
+            $conversionName = 'original';
+        }
+        $media = $media->getMeta();
+        $media->path = $mediaItem->getPath();
+        if ($conversionName == 'original') {
+            $media->url = $media->full_url;
+        } else {
+            if (! array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
+                //                dd($conversion, $conversionName, $mediaItem->generated_conversions);
+                //Todo: check if conversion exists, if not, dispatch job to create it
+            }
+            $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
+        }
+
+        return $media;
+        //        });
 
         return $media;
     }

@@ -41,7 +41,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 ->width(200);
         });
 
-//        MediaLibraryItem::observe(MediaLibraryItemObserver::class);
+        //        MediaLibraryItem::observe(MediaLibraryItemObserver::class);
     }
 
     public function packageBooted()
