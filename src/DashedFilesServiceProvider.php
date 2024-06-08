@@ -4,6 +4,7 @@ namespace Dashed\DashedFiles;
 
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
+use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
 use Dashed\DashedFiles\Observers\MediaLibraryitemObserver;
 use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
@@ -64,6 +65,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
             ->hasCommands([
                 MigrateFilesToSpatieMediaLibrary::class,
                 MigrateImagesInDatabase::class,
+                MigrateImagesToNewPath::class,
             ])
             ->hasConfigFile([
                 'media-library',

@@ -42,7 +42,7 @@ class MediaHelper extends Command
             ->pageTitle('Media Browser')
             ->acceptPdf()
             ->acceptVideo()
-            ->conversionResponsive(enabled: true, modifyUsing: function (Conversion $conversion) {
+            ->conversionResponsive(enabled: false, modifyUsing: function (Conversion $conversion) {
                 // Apply any modifications you want to the conversion, or omit to use defaults...
                 return $conversion->format('webp');
             })
