@@ -2,16 +2,11 @@
 
 namespace Dashed\DashedFiles\Commands;
 
-use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Http\File;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Spatie\MediaLibrary\ResponsiveImages\Jobs\GenerateResponsiveImagesJob;
 
 class MigrateImagesToNewPath extends Command
 {
