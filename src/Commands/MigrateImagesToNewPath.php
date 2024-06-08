@@ -34,7 +34,7 @@ class MigrateImagesToNewPath extends Command
             $oldPath = trim(rtrim($this->getOldPath($mediaItem), '/'), '/');
             $oldPathFile = $oldPath . '/' . $mediaItem->file_name;
             $newPath = trim(rtrim($mediaItem->getPath(), '/'), '/');
-            if (Storage::exists($oldPathFile)) {
+            if (Storage::disk('dashed')->exists($oldPathFile)) {
                 Storage::disk('dashed')->move($oldPathFile, $newPath);
                 Artisan::call('media-library:regenerate', ['--ids' => $mediaItem->id]);
                 Storage::disk('dashed')->deleteDirectory($oldPath);
