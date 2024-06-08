@@ -32,15 +32,15 @@ class MigrateImagesToNewPath extends Command
         $this->withProgressBar(MediaLibraryItem::all(), function ($item) {
             $mediaItem = $item->getItem();
             $oldPath = trim(rtrim($this->getOldPath($mediaItem), '/'), '/');
-            $oldPathFile = $oldPath . '/' . $mediaItem->name;
+            $oldPathFile = $oldPath . '/' . $mediaItem->file_name;
             $newPath = trim(rtrim($mediaItem->getPath(), '/'), '/');
             if (Storage::exists($oldPathFile)) {
                 Storage::disk('dashed')->move($oldPathFile, $newPath);
                 Artisan::call('media-library:regenerate', ['--ids' => $mediaItem->id]);
                 Storage::disk('dashed')->deleteDirectory($oldPath);
                 $this->info("Moved " . $mediaItem->name);
-            } else {
-                $this->error("File not found " . $mediaItem->name);
+            }else{
+                $this->error("File not found at " . $oldPathFile);
             }
         });
 
