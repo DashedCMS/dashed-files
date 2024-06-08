@@ -34,10 +34,14 @@ class MigrateImagesToNewPath extends Command
             $oldPath = trim(rtrim($this->getOldPath($mediaItem), '/'), '/');
             $oldPathFile = $oldPath . '/' . $mediaItem->name;
             $newPath = trim(rtrim($mediaItem->getPath(), '/'), '/');
-            Storage::disk('dashed')->move($oldPathFile, $newPath);
-            Artisan::call('media-library:regenerate', ['--ids' => $mediaItem->id]);
-            Storage::disk('dashed')->deleteDirectory($oldPath);
-            $this->info("Moved " . $mediaItem->name);
+            if (Storage::exists($oldPathFile)) {
+                Storage::disk('dashed')->move($oldPathFile, $newPath);
+                Artisan::call('media-library:regenerate', ['--ids' => $mediaItem->id]);
+                Storage::disk('dashed')->deleteDirectory($oldPath);
+                $this->info("Moved " . $mediaItem->name);
+            }else{
+                $this->error("File not found " . $mediaItem->name);
+            }
         });
 
         return self::SUCCESS;
