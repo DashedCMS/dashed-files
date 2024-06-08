@@ -39,6 +39,8 @@ class MigrateImagesToNewPath extends Command
                 Artisan::call('media-library:regenerate', ['--ids' => $mediaItem->id]);
                 Storage::disk('dashed')->deleteDirectory($oldPath);
                 $this->info("Moved " . $mediaItem->name);
+            } elseif(Storage::disk('dashed')->exists($newPath)) {
+                $this->warn("File already moved: " . $oldPathFile);
             } else {
                 $this->error("File not found at " . $oldPathFile);
             }
