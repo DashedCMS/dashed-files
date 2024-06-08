@@ -37,6 +37,7 @@ class MigrateImagesToNewPath extends Command
             Storage::disk('dashed')->move($oldPathFile, $newPath);
             Artisan::call('media-library:regenerate', ['--ids' => $mediaItem->id]);
             Storage::disk('dashed')->deleteDirectory($oldPath);
+            $this->info("Moved " . $mediaItem->name);
         });
 
         return self::SUCCESS;
