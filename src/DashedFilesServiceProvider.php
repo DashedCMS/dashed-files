@@ -6,6 +6,7 @@ use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
 use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
 use Dashed\DashedFiles\Observers\MediaLibraryitemObserver;
+use Dashed\DashedFiles\Observers\MediaObserver;
 use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
@@ -78,6 +79,8 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
     public function packageBooted()
     {
+        Media::observe(MediaObserver::class);
+
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
             $schedule->command('media-library:delete-old-temporary-uploads')->daily();
