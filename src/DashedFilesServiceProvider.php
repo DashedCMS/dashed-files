@@ -26,7 +26,6 @@ class DashedFilesServiceProvider extends PackageServiceProvider
             foreach ($mediaLibraryItemConversions as $conversion) {
                 if (is_array($conversion)) {
                     foreach ($conversion as $key => $value) {
-                        dump(mediaHelper()->getConversionName($conversion));
                         if($key == 'widen') {
                             $mediaLibraryItem
                                 ->addMediaConversion(mediaHelper()->getConversionName($conversion))
