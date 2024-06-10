@@ -20,26 +20,57 @@ class DashedFilesServiceProvider extends PackageServiceProvider
     public function bootingPackage()
     {
         MediaLibrary::registerMediaConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
-            $mediaLibraryItem
-                ->addMediaConversion('huge')
-                ->format('webp')
-                ->width(1600);
-            $mediaLibraryItem
-                ->addMediaConversion('large')
-                ->format('webp')
-                ->width(1200);
-            $mediaLibraryItem
-                ->addMediaConversion('medium')
-                ->format('webp')
-                ->width(800);
-            $mediaLibraryItem
-                ->addMediaConversion('small')
-                ->format('webp')
-                ->width(400);
-            $mediaLibraryItem
-                ->addMediaConversion('tiny')
-                ->format('webp')
-                ->width(200);
+            $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?: '{}', true);
+
+            foreach ($mediaLibraryItemConversions as $conversion) {
+                if (is_array($conversion)) {
+                    foreach ($conversion as $key => $value) {
+                        dump(mediaHelper()->getConversionName($conversion));
+                        if($key == 'widen'){
+                            $mediaLibraryItem
+                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                ->format('webp')
+                                ->width($value);
+                        }elseif($key == 'heighten'){
+                            $mediaLibraryItem
+                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                ->format('webp')
+                                ->height($value);
+                        }elseif($key == 'fit'){
+                            $mediaLibraryItem
+                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                ->format('webp')
+                                ->fit('crop', $value[0], $value[1]);
+                        }
+                    }
+                } elseif ($conversion == 'original') {
+                    //Do nothing
+                } elseif ($conversion == 'huge') {
+                    $mediaLibraryItem
+                        ->addMediaConversion('huge')
+                        ->format('webp')
+                        ->width(1600);
+                } elseif ($conversion == 'large') {
+                    $mediaLibraryItem
+                        ->addMediaConversion('large')
+                        ->format('webp')
+                        ->width(1200);
+                } elseif ($conversion == 'small') {
+                    $mediaLibraryItem
+                        ->addMediaConversion('small')
+                        ->format('webp')
+                        ->width(400);
+                } elseif ($conversion == 'tiny') {
+                    $mediaLibraryItem
+                        ->addMediaConversion('tiny')
+                        ->format('webp')
+                        ->width(200);
+                }
+                $mediaLibraryItem
+                    ->addMediaConversion('medium')
+                    ->format('webp')
+                    ->width(800);
+            }
         });
 
         //        MediaLibraryItem::observe(MediaLibraryItemObserver::class);
