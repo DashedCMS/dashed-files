@@ -26,17 +26,17 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 if (is_array($conversion)) {
                     foreach ($conversion as $key => $value) {
                         dump(mediaHelper()->getConversionName($conversion));
-                        if($key == 'widen'){
+                        if($key == 'widen') {
                             $mediaLibraryItem
                                 ->addMediaConversion(mediaHelper()->getConversionName($conversion))
                                 ->format('webp')
                                 ->width($value);
-                        }elseif($key == 'heighten'){
+                        } elseif($key == 'heighten') {
                             $mediaLibraryItem
                                 ->addMediaConversion(mediaHelper()->getConversionName($conversion))
                                 ->format('webp')
                                 ->height($value);
-                        }elseif($key == 'fit'){
+                        } elseif($key == 'fit') {
                             $mediaLibraryItem
                                 ->addMediaConversion(mediaHelper()->getConversionName($conversion))
                                 ->format('webp')
