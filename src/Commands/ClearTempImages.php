@@ -3,10 +3,6 @@
 namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Support\Facades\File;
 
 class ClearTempImages extends Command
