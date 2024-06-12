@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles;
 
+use Dashed\DashedFiles\Commands\ClearTempImages;
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
 use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
@@ -82,7 +83,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
-            $schedule->command('media-library:delete-old-temporary-uploads')->daily();
+            $schedule->command('dashed:clear-temp-images')->daily();
         });
     }
 
@@ -99,6 +100,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 MigrateFilesToSpatieMediaLibrary::class,
                 MigrateImagesInDatabase::class,
                 MigrateImagesToNewPath::class,
+                ClearTempImages::class,
             ])
             ->hasConfigFile([
                 'media-library',
