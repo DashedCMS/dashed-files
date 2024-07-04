@@ -42,6 +42,7 @@ class MigrateImagesInDatabase extends Command
             'telescope_entries_tags',
             'dashed__not_found_pages',
             'dashed__not_found_page_occurrences',
+            'dashed__order_logs',
         ];
     }
 
