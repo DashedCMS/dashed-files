@@ -43,6 +43,8 @@ class MigrateImagesInDatabase extends Command
             'dashed__not_found_pages',
             'dashed__not_found_page_occurrences',
             'dashed__order_logs',
+            'dashed__form_inputs',
+            'dashed__form_input_fields',
         ];
     }
 
