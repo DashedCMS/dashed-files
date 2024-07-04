@@ -45,6 +45,9 @@ class MigrateImagesInDatabase extends Command
             'dashed__order_logs',
             'dashed__form_inputs',
             'dashed__form_input_fields',
+            'dashed__orders',
+            'dashed__order_products',
+            'dashed__order_payments',
         ];
     }
 
