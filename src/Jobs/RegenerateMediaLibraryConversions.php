@@ -19,12 +19,12 @@ class RegenerateMediaLibraryConversions implements ShouldQueue
 
     public $timeout = 1200;
     public ?int $mediaId;
-    public ?int $cacheTag;
+    public ?string $cacheTag;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(int|string $mediaId, string $cacheTag)
+    public function __construct(int $mediaId, string $cacheTag)
     {
         $this->mediaId = $mediaId;
         $this->cacheTag = $cacheTag;
