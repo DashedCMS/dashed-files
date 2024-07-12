@@ -5,7 +5,6 @@ namespace Dashed\DashedFiles\Classes;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
