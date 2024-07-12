@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles\Classes;
 
+use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
@@ -90,7 +91,8 @@ class MediaHelper extends Command
 
         $conversionName = $this->getConversionName($conversion);
 
-        $media = Cache::rememberForever('media-library-media-' . $mediaId . '-' . $conversionName, function () use ($mediaId, $conversion, $conversionName) {
+        $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
+        $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
             $media = MediaLibraryItem::find($mediaId);
             if (! $media) {
                 return '';
@@ -126,7 +128,7 @@ class MediaHelper extends Command
                 $media->url = $media->full_url;
             } else {
                 if (! array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
-                    Artisan::call('media-library:regenerate', ['--ids' => $mediaItem->id]);
+                    RegenerateMediaLibraryConversions::dispatch($mediaItem->id, $cacheTag);
                 }
                 $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
             }
