@@ -8,6 +8,8 @@
     'controls' => false,
     'muted' => true,
     'loop' => true,
+    'height' => '',
+    'width' => '',
 ])
 @php
     $media = mediaHelper()->getSingleMedia($mediaId, $manipulations ?: $conversion);
