@@ -112,7 +112,7 @@ class MediaHelper extends Command
                 $media->save();
             }
 
-            if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4'])) {
+            if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4', 'image/gif'])) {
                 $conversionName = 'original';
             }
 
