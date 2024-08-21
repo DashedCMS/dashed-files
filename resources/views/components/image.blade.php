@@ -14,7 +14,7 @@
 @php
     $media = mediaHelper()->getSingleMedia($mediaId, $manipulations ?: $conversion);
     $url = $media->url ?? '';
-    $alt = $media->alt ?? $alt;
+    $alt = $media->altText ?? $alt;
     $isVideo = $media->isVideo ?? false;
 @endphp
 @if($isVideo)
