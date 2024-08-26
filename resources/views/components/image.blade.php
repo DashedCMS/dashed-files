@@ -31,6 +31,7 @@
     <img
         src="{{ $url }}"
         alt="{{ $alt }}"
+        loading="{{ $loading }}"
         {{ $attributes }}
     >
 @endif
