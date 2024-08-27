@@ -3,8 +3,8 @@
 namespace Dashed\DashedFiles;
 
 use Filament\Panel;
-use Dashed\DashedFiles\Filament\Pages\FilesPage;
 use Filament\Contracts\Plugin;
+use Dashed\DashedFiles\Filament\Pages\FilesPage;
 
 class DashedFilesPlugin implements Plugin
 {
