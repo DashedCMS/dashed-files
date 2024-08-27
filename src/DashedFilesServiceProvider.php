@@ -2,18 +2,18 @@
 
 namespace Dashed\DashedFiles;
 
-use Dashed\DashedFiles\Commands\ClearTempImages;
-use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
-use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
-use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
-use Dashed\DashedFiles\Observers\MediaLibraryitemObserver;
-use Dashed\DashedFiles\Observers\MediaObserver;
-use Illuminate\Console\Scheduling\Schedule;
-use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\LaravelPackageTools\Package;
+use Illuminate\Console\Scheduling\Schedule;
+use Dashed\DashedFiles\Observers\MediaObserver;
+use Dashed\DashedFiles\Commands\ClearTempImages;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
+use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
+use Dashed\DashedFiles\Observers\MediaLibraryitemObserver;
+use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
+use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class DashedFilesServiceProvider extends PackageServiceProvider
 {

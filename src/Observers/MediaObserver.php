@@ -3,8 +3,8 @@
 namespace Dashed\DashedFiles\Observers;
 
 use Illuminate\Support\Facades\Cache;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class MediaObserver
 {

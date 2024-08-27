@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('filament_media_library', function(Blueprint $table) {
+        Schema::table('filament_media_library', function (Blueprint $table) {
             $table->json('conversions')->nullable();
         });
     }
@@ -20,7 +20,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('filament_media', function(Blueprint $table) {
+        Schema::table('filament_media', function (Blueprint $table) {
             //
         });
     }

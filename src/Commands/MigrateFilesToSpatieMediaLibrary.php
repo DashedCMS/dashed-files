@@ -5,9 +5,9 @@ namespace Dashed\DashedFiles\Commands;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
 
 class MigrateFilesToSpatieMediaLibrary extends Command
 {
