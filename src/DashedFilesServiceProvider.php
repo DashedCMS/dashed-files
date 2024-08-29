@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles;
 
+use Spatie\Image\Enums\Fit;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
 use Dashed\DashedFiles\Observers\MediaObserver;
@@ -31,17 +32,22 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                             $mediaLibraryItem
                                 ->addMediaConversion(mediaHelper()->getConversionName($conversion))
                                 ->format('webp')
-                                ->width($value);
+                                ->width(is_array($value) ? $value[0] : $value);
                         } elseif($key == 'heighten') {
                             $mediaLibraryItem
                                 ->addMediaConversion(mediaHelper()->getConversionName($conversion))
                                 ->format('webp')
-                                ->height($value);
+                                ->width(is_array($value) ? $value[0] : $value);
                         } elseif($key == 'fit') {
                             $mediaLibraryItem
                                 ->addMediaConversion(mediaHelper()->getConversionName($conversion))
                                 ->format('webp')
-                                ->fit('crop', $value[0], $value[1]);
+                                ->fit(Fit::Crop, $value[0], $value[1]);
+                        } elseif($key == 'contain') {
+                            $mediaLibraryItem
+                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                ->format('webp')
+                                ->fit(Fit::Contain, $value[0], $value[1]);
                         }
                     }
                 } elseif ($conversion == 'original') {
