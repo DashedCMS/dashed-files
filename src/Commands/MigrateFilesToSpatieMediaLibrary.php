@@ -26,7 +26,7 @@ class MigrateFilesToSpatieMediaLibrary extends Command
         }
 
         foreach($directories as $key => $directory) {
-            if(str($directory)->contains(['dashed/invoices', 'dashed/packing-slips'])) {
+            if(str($directory)->contains(['dashed/invoices', 'dashed/packing-slips', 'dashed/keendelivery/labels'])) {
                 unset($directories[$key]);
             }
         }
