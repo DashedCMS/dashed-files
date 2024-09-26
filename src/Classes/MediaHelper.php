@@ -4,8 +4,8 @@ namespace Dashed\DashedFiles\Classes;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
@@ -84,7 +84,7 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (!is_int($mediaId)) {
+        if (! is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
@@ -95,7 +95,7 @@ class MediaHelper extends Command
         $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
         $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
             $media = MediaLibraryItem::find($mediaId);
-            if (!$media) {
+            if (! $media) {
                 return '';
             }
 
@@ -108,7 +108,7 @@ class MediaHelper extends Command
                     $hasCurrentConversion = true;
                 }
             }
-            if (!$hasCurrentConversion) {
+            if (! $hasCurrentConversion) {
                 $currentRegisteredConversions[] = $conversion;
                 $media->conversions = json_encode($currentRegisteredConversions);
                 $media->save();
@@ -128,7 +128,7 @@ class MediaHelper extends Command
             if ($conversionName == 'original') {
                 $media->url = $media->full_url;
             } else {
-                if (!array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
+                if (! array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
                     RegenerateMediaLibraryConversions::dispatch($mediaItem->id, $cacheTag);
                 }
                 $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
@@ -164,7 +164,7 @@ class MediaHelper extends Command
         if (is_array($conversion)) {
             $conversionString = '';
             foreach ($conversion as $key => $conv) {
-                if (!is_int($key)) {
+                if (! is_int($key)) {
                     $conversionString .= "$key-";
                 }
                 if ($isChild) {
@@ -204,7 +204,7 @@ class MediaHelper extends Command
 
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
-            if (!$mediaFolder) {
+            if (! $mediaFolder) {
                 $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
@@ -245,7 +245,7 @@ class MediaHelper extends Command
             $fileContent = $response->body();
             $fileType = $response->header('Content-Type');
             $fileName = basename($path);
-            if(!str($fileName)->contains('.')){
+            if (! str($fileName)->contains('.')) {
                 $fileName .= '.' . str($fileType)->explode('/')[1];
             }
             $path = '/tmp/' . $fileName;
