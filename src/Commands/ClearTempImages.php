@@ -15,7 +15,7 @@ class ClearTempImages extends Command
     {
         $directory = 'storage/media-library/temp';
 
-        if(File::exists($directory)) {
+        if (File::exists($directory)) {
             File::cleanDirectory($directory);
             $this->info('Temp images cleared');
         } else {
