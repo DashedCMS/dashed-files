@@ -17,7 +17,7 @@ class DashedFilesPlugin implements Plugin
     {
         $panel
             ->pages([
-                FilesPage::class,
+//                FilesPage::class,
             ]);
     }
 
