@@ -191,15 +191,12 @@ class MigrateImagesInDatabase extends Command
             $oldValue = $value;
             $fileToCheck = basename($value);
             if (str($fileToCheck)->length() > 200) {
-                //                dump($value);
-                //                $value = str(str($fileToCheck)->explode('/')->last())->substr(50);
                 $newFileName = str(str($value)->explode('/')->last())->substr(50);
                 $value = str($value)->replace($fileToCheck, $newFileName);
-                //                dump($value);
             }
             if ($mediaItem = $this->mediaLibraryItems->where('file_name_to_match', basename($value))->first()) {
                 try {
-                    $filePassedChecks = Storage::disk('dashed')->exists($mediaItem->getItem()->getPath());
+                    $filePassedChecks = Storage::disk('dashed')->exists($mediaItem->getItem()->getPath()) || file_exists($mediaItem->getItem()->getPath());
                     if (! str($value)->contains('/')) {
                         $filePassedChecks = false;
                     }
@@ -219,7 +216,6 @@ class MigrateImagesInDatabase extends Command
                     $this->info('Replacement made in ' . $tableName . ' for ' . $columnName . ' with id ' . $rowId . ' with value ' . $value . ' with ' . $mediaItem->id);
                 }
             } else {
-                //                dump('not matched in libraryMediaItems');
                 $filePassedChecks = false;
             }
 
