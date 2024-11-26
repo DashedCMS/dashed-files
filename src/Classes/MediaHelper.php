@@ -241,9 +241,9 @@ class MediaHelper extends Command
         }
 
         if ($isExternalImage) {
-            try{
+            try {
                 $response = Http::timeout(3)->retry(3)->get($path);
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 return null;
             }
             $fileContent = $response->body();
