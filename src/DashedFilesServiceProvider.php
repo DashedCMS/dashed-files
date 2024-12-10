@@ -23,7 +23,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
     public function bootingPackage()
     {
         MediaLibrary::registerMediaConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
-            $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?: '{}', true);
+            $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?? '{}', true);
 
             foreach ($mediaLibraryItemConversions as $conversion) {
                 if (is_array($conversion)) {
