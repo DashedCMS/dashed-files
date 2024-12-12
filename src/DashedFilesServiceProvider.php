@@ -81,6 +81,10 @@ class DashedFilesServiceProvider extends PackageServiceProvider
         });
 
         //        MediaLibraryItem::observe(MediaLibraryItemObserver::class);
+
+        cms()->builder('publishOnUpdate', [
+            'medialibrary-config',
+        ]);
     }
 
     public function packageBooted()
