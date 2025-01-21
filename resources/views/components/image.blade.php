@@ -14,6 +14,8 @@
 @if($mediaId)
     @php
         $media = mediaHelper()->getSingleMedia($mediaId, $manipulations ?: $conversion);
+        $width = $width ?: $media->width;
+        $height = $height ?: $media->height;
         $url = $media->url ?? '';
         $alt = $media->altText ?? $alt;
         $isVideo = $media->isVideo ?? false;
@@ -30,10 +32,12 @@
         </video>
     @else
         <img
-                src="{{ $url }}"
-                alt="{{ $alt }}"
-                loading="{{ $loading }}"
-                {{ $attributes }}
+            @if($width) width="{{ $width }}" @endif
+        @if($height) height="{{ $height }}" @endif
+            src="{{ $url }}"
+            alt="{{ $alt }}"
+            loading="{{ $loading }}"
+            {{ $attributes }}
         >
     @endif
 @endif
