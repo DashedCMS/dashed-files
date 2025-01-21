@@ -14,8 +14,8 @@
 @if($mediaId)
     @php
         $media = mediaHelper()->getSingleMedia($mediaId, $manipulations ?: $conversion);
-        $width = $width ?: $media->width;
-        $height = $height ?: $media->height;
+        $width = $width ?: ($media->width ?? null);
+        $height = $height ?: ($media->height ?? null);
         $url = $media->url ?? '';
         $alt = $media->altText ?? $alt;
         $isVideo = $media->isVideo ?? false;
