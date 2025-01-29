@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles;
 
+use Dashed\DashedCore\DashedCorePlugin;
 use Spatie\Image\Enums\Fit;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
@@ -115,5 +116,10 @@ class DashedFilesServiceProvider extends PackageServiceProvider
             ->hasConfigFile([
                 'media-library',
             ]);
+
+        cms()->builder('plugins', [
+            new DashedFilesPlugin(),
+            mediaHelper()->plugin(),
+        ]);
     }
 }
