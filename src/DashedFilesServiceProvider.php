@@ -2,7 +2,6 @@
 
 namespace Dashed\DashedFiles;
 
-use Dashed\DashedCore\DashedCorePlugin;
 use Spatie\Image\Enums\Fit;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
