@@ -31,8 +31,8 @@ class MediaHelper extends Command
             $mediaPicker->acceptedFileTypes(['image/*']);
         }
 
-        if($defaultFolder){
-            if(is_string($defaultFolder)){
+        if ($defaultFolder) {
+            if (is_string($defaultFolder)) {
                 $defaultFolder = $this->getFolderId($defaultFolder);
             }
 
