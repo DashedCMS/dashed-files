@@ -17,7 +17,7 @@ use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
 
 class MediaHelper extends Command
 {
-    public function field($name = 'image', $label = 'Afbeelding', $required = false, $multiple = false, $isImage = false): MediaPicker
+    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): MediaPicker
     {
         $mediaPicker = MediaPicker::make($name)
             ->label($label)
@@ -29,6 +29,14 @@ class MediaHelper extends Command
 
         if ($isImage) {
             $mediaPicker->acceptedFileTypes(['image/*']);
+        }
+
+        if($defaultFolder){
+            if(is_string($defaultFolder)){
+                $defaultFolder = $this->getFolderId($defaultFolder);
+            }
+
+            $mediaPicker->defaultFolder(MediaLibraryFolder::find($defaultFolder));
         }
 
         return $mediaPicker;
