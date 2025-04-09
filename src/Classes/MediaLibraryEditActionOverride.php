@@ -2,8 +2,8 @@
 
 namespace App\Classes;
 
-use RalphJSmit\Filament\MediaLibrary\FilamentTipTap\Actions\MediaLibraryEditAction;
 use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
+use RalphJSmit\Filament\MediaLibrary\FilamentTipTap\Actions\MediaLibraryEditAction;
 
 class MediaLibraryEditActionOverride extends MediaLibraryEditAction
 {
