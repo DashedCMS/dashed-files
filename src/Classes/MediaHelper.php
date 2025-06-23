@@ -18,15 +18,15 @@ use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
 
 class MediaHelper extends Command
 {
-    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): MediaPicker
+    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): MediaPicker|AdvancedFileUpload
     {
         $mediaPicker = AdvancedFileUpload::make($name)
             ->label($label)
             ->required($required)
             ->multiple($multiple)
-            ->showFileName()
             ->downloadable()
             ->reorderable();
+
         //        $mediaPicker = MediaPicker::make($name)
         //            ->label($label)
         //            ->required($required)
