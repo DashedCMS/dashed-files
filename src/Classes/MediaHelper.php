@@ -7,13 +7,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use RalphJSmit\Filament\Upload\Filament\Forms\Components\AdvancedFileUpload;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
+use RalphJSmit\Filament\Upload\Filament\Forms\Components\AdvancedFileUpload;
 use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
 
 class MediaHelper extends Command
@@ -27,13 +27,13 @@ class MediaHelper extends Command
             ->showFileName()
             ->downloadable()
             ->reorderable();
-//        $mediaPicker = MediaPicker::make($name)
-//            ->label($label)
-//            ->required($required)
-//            ->multiple($multiple)
-//            ->showFileName()
-//            ->downloadable()
-//            ->reorderable();
+        //        $mediaPicker = MediaPicker::make($name)
+        //            ->label($label)
+        //            ->required($required)
+        //            ->multiple($multiple)
+        //            ->showFileName()
+        //            ->downloadable()
+        //            ->reorderable();
 
         if ($isImage) {
             $mediaPicker->acceptedFileTypes(['image/*']);
