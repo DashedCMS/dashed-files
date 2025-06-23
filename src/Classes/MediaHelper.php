@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use RalphJSmit\Filament\Upload\Filament\Forms\Components\AdvancedFileUpload;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
@@ -19,13 +20,20 @@ class MediaHelper extends Command
 {
     public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): MediaPicker
     {
-        $mediaPicker = MediaPicker::make($name)
+        $mediaPicker = AdvancedFileUpload::make($name)
             ->label($label)
             ->required($required)
             ->multiple($multiple)
             ->showFileName()
             ->downloadable()
             ->reorderable();
+//        $mediaPicker = MediaPicker::make($name)
+//            ->label($label)
+//            ->required($required)
+//            ->multiple($multiple)
+//            ->showFileName()
+//            ->downloadable()
+//            ->reorderable();
 
         if ($isImage) {
             $mediaPicker->acceptedFileTypes(['image/*']);

@@ -18,8 +18,9 @@
     "require": {
         "php": "^8.3|^8.4",
         "alexusmai/laravel-file-manager": "^3.2",
-        "spatie/laravel-package-tools": "^1.16",
-        "ralphjsmit/laravel-filament-media-library": "^3.9"
+        "ralphjsmit/laravel-filament-media-library": "^3.9",
+        "ralphjsmit/laravel-filament-upload": "^0.1",
+        "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.63",
