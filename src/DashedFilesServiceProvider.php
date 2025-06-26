@@ -5,7 +5,6 @@ namespace Dashed\DashedFiles;
 use Spatie\Image\Enums\Fit;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
-use RalphJSmit\Filament\Upload\FilamentUpload;
 use Dashed\DashedFiles\Observers\MediaObserver;
 use Dashed\DashedFiles\Commands\ClearTempImages;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
