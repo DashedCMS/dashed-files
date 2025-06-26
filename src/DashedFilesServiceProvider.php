@@ -120,7 +120,6 @@ class DashedFilesServiceProvider extends PackageServiceProvider
         cms()->builder('plugins', [
             new DashedFilesPlugin(),
             mediaHelper()->plugin(),
-            FilamentUpload::make(),
         ]);
     }
 }
