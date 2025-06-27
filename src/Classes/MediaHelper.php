@@ -81,13 +81,17 @@ class MediaHelper extends Command
      * @deprecated
      *
      */
-    public function getSingleImage(int|string|array $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
+    public function getSingleImage(null|int|string|array $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
     {
         return $this->getSingleMedia($mediaId, $conversion);
     }
 
-    public function getSingleMedia(int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
+    public function getSingleMedia(null|int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
     {
+        if(!$mediaId){
+            return '';
+        }
+
         if ($mediaId instanceof MediaItemMeta) {
             $mediaId = $mediaId->id;
         }
