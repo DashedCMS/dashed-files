@@ -88,7 +88,7 @@ class MediaHelper extends Command
 
     public function getSingleMedia(null|int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
     {
-        if(!$mediaId){
+        if (! $mediaId) {
             return '';
         }
 
