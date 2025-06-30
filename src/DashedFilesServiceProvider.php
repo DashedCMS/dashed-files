@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles;
 
+use RalphJSmit\Filament\Upload\FilamentUpload;
 use Spatie\Image\Enums\Fit;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
@@ -119,6 +120,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
         cms()->builder('plugins', [
             new DashedFilesPlugin(),
             mediaHelper()->plugin(),
+            FilamentUpload::make(),
         ]);
     }
 }
