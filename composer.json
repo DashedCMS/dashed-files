@@ -57,7 +57,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Dashed\\DashedFiles\\DashedFilesServiceProvider"
+                "Dashed\\DashedFiles\\DashedFilesServiceProvider",
+                "Dashed\\DashedFiles\\DashedFilesEventServiceProvider"
             ]
         }
     },

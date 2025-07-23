@@ -35,7 +35,7 @@ class RegenerateMediaLibraryConversions implements ShouldQueue
      */
     public function handle(): void
     {
-        Artisan::call('media-library:regenerate', ['--ids' => $this->mediaId]);
+        Artisan::call('media-library:regenerate', ['--ids' => $this->mediaId, '--only-missing']);
         Cache::forget($this->cacheTag);
     }
 }
