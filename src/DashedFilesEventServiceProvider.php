@@ -1,12 +1,10 @@
 <?php
 
-
 namespace Dashed\DashedFiles;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
-class
-DashedFilesEventServiceProvider extends ServiceProvider
+class DashedFilesEventServiceProvider extends ServiceProvider
 {
     /**
      * The event listener mappings for the application.
