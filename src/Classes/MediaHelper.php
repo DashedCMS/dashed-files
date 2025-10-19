@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Filament\Forms\Components\TextInput;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
@@ -18,7 +19,7 @@ use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
 
 class MediaHelper extends Command
 {
-    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): MediaPicker|AdvancedFileUpload
+    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): TextInput|MediaPicker|AdvancedFileUpload
     {
         //        $mediaPicker = AdvancedFileUpload::make($name)
         //            ->label($label)
@@ -27,6 +28,10 @@ class MediaHelper extends Command
         //            ->downloadable()
         //            ->reorderable();
 
+        return TextInput::make($name)
+            ->label($label)
+            ->placeholder('Media picker is tijdelijk uitgeschakeld')
+            ->helperText('Media picker is tijdelijk uitgeschakeld');
         $mediaPicker = MediaPicker::make($name)
             ->label($label)
             ->required($required)
@@ -52,6 +57,8 @@ class MediaHelper extends Command
 
     public function plugin()
     {
+        return;
+
         return FilamentMediaLibrary::make()
             ->navigationGroup('Content')
             ->navigationSort(1)
@@ -114,6 +121,7 @@ class MediaHelper extends Command
 
         $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
         $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
+            return '';
             $media = MediaLibraryItem::find($mediaId);
             if (! $media) {
                 return '';
