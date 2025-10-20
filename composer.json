@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": "^8.4",
-        "alexusmai/laravel-file-manager": "^3.2",
+        "ralphjsmit/laravel-filament-media-library": "^4.0-beta4",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {

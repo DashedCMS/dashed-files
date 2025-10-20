@@ -12,10 +12,9 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
-use Dashed\DashedFiles\Observers\MediaLibraryitemObserver;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class DashedFilesServiceProvider extends PackageServiceProvider
 {
@@ -81,8 +80,6 @@ class DashedFilesServiceProvider extends PackageServiceProvider
         //            }
         //        });
 
-        //        MediaLibraryItem::observe(MediaLibraryItemObserver::class);
-
         cms()->builder('publishOnUpdate', [
             'medialibrary-config',
         ]);
@@ -90,7 +87,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
     public function packageBooted()
     {
-        //        Media::observe(MediaObserver::class);
+        Media::observe(MediaObserver::class);
 
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
@@ -119,7 +116,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
         cms()->builder('plugins', [
             new DashedFilesPlugin(),
-//            mediaHelper()->plugin(),
+            mediaHelper()->plugin(),
 //            FilamentUpload::make(),
         ]);
     }

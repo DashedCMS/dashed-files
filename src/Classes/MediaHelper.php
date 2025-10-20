@@ -10,12 +10,11 @@ use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
-use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\Upload\Filament\Forms\Components\AdvancedFileUpload;
-use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
+use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
+use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
 
 class MediaHelper extends Command
 {
@@ -28,15 +27,14 @@ class MediaHelper extends Command
         //            ->downloadable()
         //            ->reorderable();
 
-        return TextInput::make($name)
-            ->label($label)
-            ->placeholder('Media picker is tijdelijk uitgeschakeld')
-            ->helperText('Media picker is tijdelijk uitgeschakeld');
+        //        return TextInput::make($name)
+        //            ->label($label)
+        //            ->placeholder('Media picker is tijdelijk uitgeschakeld')
+        //            ->helperText('Media picker is tijdelijk uitgeschakeld');
         $mediaPicker = MediaPicker::make($name)
             ->label($label)
             ->required($required)
             ->multiple($multiple)
-            ->showFileName()
             ->downloadable()
             ->reorderable();
 
@@ -57,29 +55,30 @@ class MediaHelper extends Command
 
     public function plugin()
     {
-        return;
-
         return FilamentMediaLibrary::make()
             ->navigationGroup('Content')
-            ->navigationSort(1)
-            ->navigationLabel('Media Browser')
+//            ->navigationSort(1)
+//            ->navigationLabel('Media Browser')
             ->navigationIcon('heroicon-o-camera')
             ->activeNavigationIcon('heroicon-s-camera')
-            ->pageTitle('Media Browser')
+//            ->pageTitle('Media Browser')
             ->acceptPdf()
             ->acceptVideo()
-            ->conversionResponsive(enabled: false, modifyUsing: function (Conversion $conversion) {
-                // Apply any modifications you want to the conversion, or omit to use defaults...
-                return $conversion->format('webp');
+            ->driver(modifyDriverUsing: function (MediaLibraryItemDriver $driver) {
+                $driver
+                    ->conversions()
+                    ->conversionResponsive(enabled: true, modifyUsing: function (Conversion $conversion) {
+                        return $conversion->format('webp');
+                    })
+                    ->conversionMedium(enabled: false, width: 800)
+                    ->conversionSmall(enabled: false, width: 400)
+                    ->conversionThumb(enabled: true, width: 600, height: 600, modifyUsing: function (Conversion $conversion) {
+                        return $conversion->format('webp');
+                    });
             })
-            ->conversionMedium(enabled: false)
-            ->conversionSmall(enabled: false)
-            ->conversionThumb(enabled: true, width: 600, height: 600, modifyUsing: function (Conversion $conversion) {
-                return $conversion->format('webp');
-            })
-            ->firstAvailableUrlConversions([
-                'thumb',
-            ])
+//            ->firstAvailableUrlConversions([
+//                'thumb',
+//            ])
             ->slug('media-browser');
     }
 
