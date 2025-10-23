@@ -12,10 +12,9 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
-use Dashed\DashedFiles\Observers\MediaLibraryitemObserver;
 use RalphJSmit\Filament\MediaLibrary\Facades\MediaLibrary;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
 
 class DashedFilesServiceProvider extends PackageServiceProvider
 {
@@ -23,65 +22,63 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
     public function bootingPackage()
     {
-        MediaLibrary::registerMediaConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
-            $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?? '{}', true);
-
-            foreach ($mediaLibraryItemConversions as $conversion) {
-                if (is_array($conversion)) {
-                    foreach ($conversion as $key => $value) {
-                        if ($key == 'widen') {
-                            $mediaLibraryItem
-                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
-                                ->format('webp')
-                                ->width(is_array($value) ? $value[0] : $value);
-                        } elseif ($key == 'heighten') {
-                            $mediaLibraryItem
-                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
-                                ->format('webp')
-                                ->width(is_array($value) ? $value[0] : $value);
-                        } elseif ($key == 'fit') {
-                            $mediaLibraryItem
-                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
-                                ->format('webp')
-                                ->fit(Fit::Crop, $value[0], $value[1]);
-                        } elseif ($key == 'contain') {
-                            $mediaLibraryItem
-                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
-                                ->format('webp')
-                                ->fit(Fit::Contain, $value[0], $value[1]);
-                        }
-                    }
-                } elseif ($conversion == 'original') {
-                    //Do nothing
-                } elseif ($conversion == 'huge') {
-                    $mediaLibraryItem
-                        ->addMediaConversion('huge')
-                        ->format('webp')
-                        ->width(1600);
-                } elseif ($conversion == 'large') {
-                    $mediaLibraryItem
-                        ->addMediaConversion('large')
-                        ->format('webp')
-                        ->width(1200);
-                } elseif ($conversion == 'small') {
-                    $mediaLibraryItem
-                        ->addMediaConversion('small')
-                        ->format('webp')
-                        ->width(400);
-                } elseif ($conversion == 'tiny') {
-                    $mediaLibraryItem
-                        ->addMediaConversion('tiny')
-                        ->format('webp')
-                        ->width(200);
-                }
-                $mediaLibraryItem
-                    ->addMediaConversion('medium')
-                    ->format('webp')
-                    ->width(800);
-            }
-        });
-
-        //        MediaLibraryItem::observe(MediaLibraryItemObserver::class);
+        //        MediaLibrary::registerMediaConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
+        //            $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?? '{}', true);
+        //
+        //            foreach ($mediaLibraryItemConversions as $conversion) {
+        //                if (is_array($conversion)) {
+        //                    foreach ($conversion as $key => $value) {
+        //                        if ($key == 'widen') {
+        //                            $mediaLibraryItem
+        //                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+        //                                ->format('webp')
+        //                                ->width(is_array($value) ? $value[0] : $value);
+        //                        } elseif ($key == 'heighten') {
+        //                            $mediaLibraryItem
+        //                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+        //                                ->format('webp')
+        //                                ->width(is_array($value) ? $value[0] : $value);
+        //                        } elseif ($key == 'fit') {
+        //                            $mediaLibraryItem
+        //                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+        //                                ->format('webp')
+        //                                ->fit(Fit::Crop, $value[0], $value[1]);
+        //                        } elseif ($key == 'contain') {
+        //                            $mediaLibraryItem
+        //                                ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+        //                                ->format('webp')
+        //                                ->fit(Fit::Contain, $value[0], $value[1]);
+        //                        }
+        //                    }
+        //                } elseif ($conversion == 'original') {
+        //                    //Do nothing
+        //                } elseif ($conversion == 'huge') {
+        //                    $mediaLibraryItem
+        //                        ->addMediaConversion('huge')
+        //                        ->format('webp')
+        //                        ->width(1600);
+        //                } elseif ($conversion == 'large') {
+        //                    $mediaLibraryItem
+        //                        ->addMediaConversion('large')
+        //                        ->format('webp')
+        //                        ->width(1200);
+        //                } elseif ($conversion == 'small') {
+        //                    $mediaLibraryItem
+        //                        ->addMediaConversion('small')
+        //                        ->format('webp')
+        //                        ->width(400);
+        //                } elseif ($conversion == 'tiny') {
+        //                    $mediaLibraryItem
+        //                        ->addMediaConversion('tiny')
+        //                        ->format('webp')
+        //                        ->width(200);
+        //                }
+        //                $mediaLibraryItem
+        //                    ->addMediaConversion('medium')
+        //                    ->format('webp')
+        //                    ->width(800);
+        //            }
+        //        });
 
         cms()->builder('publishOnUpdate', [
             'medialibrary-config',
@@ -120,7 +117,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
         cms()->builder('plugins', [
             new DashedFilesPlugin(),
             mediaHelper()->plugin(),
-            FilamentUpload::make(),
+//            FilamentUpload::make(),
         ]);
     }
 }

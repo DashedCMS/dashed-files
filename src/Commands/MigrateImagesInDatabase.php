@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 
 class MigrateImagesInDatabase extends Command
 {

@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 
 class MigrateImagesToNewPath extends Command
 {
