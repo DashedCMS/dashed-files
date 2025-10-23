@@ -16,12 +16,13 @@
         }
     ],
     "require": {
-        "php": "^8.4",
-        "ralphjsmit/laravel-filament-media-library": "^4.0-beta4",
+        "php": "^8.3|^8.4",
+        "alexusmai/laravel-file-manager": "^3.2",
+        "ralphjsmit/laravel-filament-media-library": "^3.9",
+        "ralphjsmit/laravel-filament-upload": "^0.2",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
-        "filament/upgrade": "^4.0",
         "friendsofphp/php-cs-fixer": "^3.63",
         "orchestra/testbench": "^9",
         "pestphp/pest": "^2.35",
