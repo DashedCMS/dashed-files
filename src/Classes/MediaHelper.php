@@ -7,18 +7,18 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Filament\Forms\Components\TextInput;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
-use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
+use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
+use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
+use RalphJSmit\Filament\Upload\Filament\Forms\Components\AdvancedFileUpload;
+use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
 
 class MediaHelper extends Command
 {
-    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): TextInput|MediaPicker|AdvancedFileUpload
+    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): MediaPicker|AdvancedFileUpload
     {
         //        $mediaPicker = AdvancedFileUpload::make($name)
         //            ->label($label)
@@ -27,14 +27,11 @@ class MediaHelper extends Command
         //            ->downloadable()
         //            ->reorderable();
 
-        //        return TextInput::make($name)
-        //            ->label($label)
-        //            ->placeholder('Media picker is tijdelijk uitgeschakeld')
-        //            ->helperText('Media picker is tijdelijk uitgeschakeld');
         $mediaPicker = MediaPicker::make($name)
             ->label($label)
             ->required($required)
             ->multiple($multiple)
+            ->showFileName()
             ->downloadable()
             ->reorderable();
 
@@ -57,28 +54,25 @@ class MediaHelper extends Command
     {
         return FilamentMediaLibrary::make()
             ->navigationGroup('Content')
-//            ->navigationSort(1)
-//            ->navigationLabel('Media Browser')
+            ->navigationSort(1)
+            ->navigationLabel('Media Browser')
             ->navigationIcon('heroicon-o-camera')
             ->activeNavigationIcon('heroicon-s-camera')
-//            ->pageTitle('Media Browser')
+            ->pageTitle('Media Browser')
             ->acceptPdf()
             ->acceptVideo()
-            ->driver(modifyDriverUsing: function (MediaLibraryItemDriver $driver) {
-                $driver
-                    ->conversions()
-                    ->conversionResponsive(enabled: true, modifyUsing: function (Conversion $conversion) {
-                        return $conversion->format('webp');
-                    })
-                    ->conversionMedium(enabled: false, width: 800)
-                    ->conversionSmall(enabled: false, width: 400)
-                    ->conversionThumb(enabled: true, width: 600, height: 600, modifyUsing: function (Conversion $conversion) {
-                        return $conversion->format('webp');
-                    });
+            ->conversionResponsive(enabled: false, modifyUsing: function (Conversion $conversion) {
+                // Apply any modifications you want to the conversion, or omit to use defaults...
+                return $conversion->format('webp');
             })
-//            ->firstAvailableUrlConversions([
-//                'thumb',
-//            ])
+            ->conversionMedium(enabled: false)
+            ->conversionSmall(enabled: false)
+            ->conversionThumb(enabled: true, width: 600, height: 600, modifyUsing: function (Conversion $conversion) {
+                return $conversion->format('webp');
+            })
+            ->firstAvailableUrlConversions([
+                'thumb',
+            ])
             ->slug('media-browser');
     }
 
@@ -94,7 +88,7 @@ class MediaHelper extends Command
 
     public function getSingleMedia(null|int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
     {
-        if (!$mediaId) {
+        if (! $mediaId) {
             return '';
         }
 
@@ -110,7 +104,7 @@ class MediaHelper extends Command
             $mediaId = $mediaId[0];
         }
 
-        if (!is_int($mediaId)) {
+        if (! is_int($mediaId)) {
             $mediaId = (int)$mediaId;
         }
 
@@ -120,9 +114,8 @@ class MediaHelper extends Command
 
         $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
         $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
-            return '';
             $media = MediaLibraryItem::find($mediaId);
-            if (!$media) {
+            if (! $media) {
                 return '';
             }
 
@@ -135,19 +128,19 @@ class MediaHelper extends Command
                     $hasCurrentConversion = true;
                 }
             }
-            if (!$hasCurrentConversion) {
+            if (! $hasCurrentConversion) {
                 $currentRegisteredConversions[] = $conversion;
                 $media->conversions = json_encode($currentRegisteredConversions);
                 $media->save();
             }
 
-            if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'image/gif']) || str($mediaItem->mime_type)->startsWith('video/')) {
+            if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4', 'image/gif'])) {
                 $conversionName = 'original';
             }
 
             $media = $media->getMeta();
             $media->path = $mediaItem->getPath();
-            if (str($mediaItem->mime_type)->startsWith('video/')) {
+            if ($mediaItem->mime_type === 'video/mp4') {
                 $media->isVideo = true;
             } else {
                 $media->isVideo = false;
@@ -155,7 +148,7 @@ class MediaHelper extends Command
             if ($conversionName == 'original') {
                 $media->url = $media->full_url;
             } else {
-                if (!array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
+                if (! array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
                     RegenerateMediaLibraryConversions::dispatch($mediaItem->id, $cacheTag);
                 }
                 $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
@@ -191,7 +184,7 @@ class MediaHelper extends Command
         if (is_array($conversion)) {
             $conversionString = '';
             foreach ($conversion as $key => $conv) {
-                if (!is_int($key)) {
+                if (! is_int($key)) {
                     $conversionString .= "$key-";
                 }
                 if ($isChild) {
@@ -231,7 +224,7 @@ class MediaHelper extends Command
 
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
-            if (!$mediaFolder) {
+            if (! $mediaFolder) {
                 $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
@@ -276,7 +269,7 @@ class MediaHelper extends Command
             $fileContent = $response->body();
             $fileType = $response->header('Content-Type');
             $fileName = basename($path);
-            if (!str($fileName)->contains('.')) {
+            if (! str($fileName)->contains('.')) {
                 $fileName .= '.' . str($fileType)->explode('/')[1];
             }
             $path = '/tmp/' . $fileName;
