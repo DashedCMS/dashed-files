@@ -168,7 +168,6 @@ class MediaHelper extends Command
             $mediaId = (int)$mediaId;
         }
 
-
         $conversionName = $this->getConversionName($conversion);
 
         $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
@@ -194,7 +193,7 @@ class MediaHelper extends Command
                 $media->save();
             }
 
-            if (in_array($mediaItem->mime_type, ['image/svg+xml', 'image/svg', 'video/mp4', 'image/gif'])) {
+            if (str($mediaItem->mime_type)->contains(['video/', 'application/pdf', 'image/svg', 'image/svg+xml', 'image/gif'])) {
                 $conversionName = 'original';
             }
 
@@ -204,8 +203,9 @@ class MediaHelper extends Command
             } else {
                 $media->isVideo = false;
             }
+
             if ($conversionName == 'original') {
-                $media->url = $media->full_url;
+                $media->url = $mediaItem->getUrl();
             } else {
                 if (! array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
                     RegenerateMediaLibraryConversions::dispatch($mediaItem->id, $cacheTag);
@@ -215,7 +215,6 @@ class MediaHelper extends Command
 
             return $media;
         });
-
         return $media;
     }
 
