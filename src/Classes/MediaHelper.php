@@ -7,19 +7,19 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Filament\Forms\Components\TextInput;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
-use RalphJSmit\Filament\MediaLibrary\Forms\Components\MediaPicker;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryItem;
-use RalphJSmit\Filament\MediaLibrary\Media\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\Upload\Filament\Forms\Components\AdvancedFileUpload;
-use RalphJSmit\Filament\MediaLibrary\Media\DataTransferObjects\MediaItemMeta;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
+use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
+use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
 
 class MediaHelper extends Command
 {
-    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): MediaPicker|AdvancedFileUpload
+    public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): TextInput|MediaPicker|AdvancedFileUpload
     {
         //        $mediaPicker = AdvancedFileUpload::make($name)
         //            ->label($label)
@@ -28,11 +28,14 @@ class MediaHelper extends Command
         //            ->downloadable()
         //            ->reorderable();
 
+        //        return TextInput::make($name)
+        //            ->label($label)
+        //            ->placeholder('Media picker is tijdelijk uitgeschakeld')
+        //            ->helperText('Media picker is tijdelijk uitgeschakeld');
         $mediaPicker = MediaPicker::make($name)
             ->label($label)
             ->required($required)
             ->multiple($multiple)
-            ->showFileName()
             ->downloadable()
             ->reorderable();
 
@@ -55,7 +58,6 @@ class MediaHelper extends Command
     {
         return FilamentMediaLibrary::make()
             ->navigationGroup('Content')
-<<<<<<< HEAD
             ->navigationIcon('heroicon-o-camera')
             ->activeNavigationIcon('heroicon-s-camera')
             ->acceptPdf()
@@ -130,27 +132,6 @@ class MediaHelper extends Command
                     }
                 });
             })
-=======
-            ->navigationSort(1)
-            ->navigationLabel('Media Browser')
-            ->navigationIcon('heroicon-o-camera')
-            ->activeNavigationIcon('heroicon-s-camera')
-            ->pageTitle('Media Browser')
-            ->acceptPdf()
-            ->acceptVideo()
-            ->conversionResponsive(enabled: false, modifyUsing: function (Conversion $conversion) {
-                // Apply any modifications you want to the conversion, or omit to use defaults...
-                return $conversion->format('webp');
-            })
-            ->conversionMedium(enabled: false)
-            ->conversionSmall(enabled: false)
-            ->conversionThumb(enabled: true, width: 600, height: 600, modifyUsing: function (Conversion $conversion) {
-                return $conversion->format('webp');
-            })
-            ->firstAvailableUrlConversions([
-                'thumb',
-            ])
->>>>>>> 71fbb1c37b0816f83048d7ab091d54c91f1f87e7
             ->slug('media-browser');
     }
 
