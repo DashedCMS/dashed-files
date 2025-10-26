@@ -171,10 +171,6 @@ class MediaHelper extends Command
 
         $conversionName = $this->getConversionName($conversion);
 
-        if ($mediaId != 1516) {
-            return '';
-        }
-
         $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
         $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
             $media = MediaLibraryItem::find($mediaId);
