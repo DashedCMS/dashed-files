@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
-use RalphJSmit\Filament\Explore\ImageGenerators\GlideImageGenerator\Fit;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
@@ -16,6 +15,7 @@ use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
+use RalphJSmit\Filament\Explore\ImageGenerators\GlideImageGenerator\Fit;
 use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
 
 class MediaHelper extends Command
@@ -215,6 +215,7 @@ class MediaHelper extends Command
 
             return $media;
         });
+
         return $media;
     }
 
