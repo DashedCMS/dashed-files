@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
 use Spatie\MediaLibrary\Conversions\Conversion;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
@@ -57,11 +58,8 @@ class MediaHelper extends Command
     {
         return FilamentMediaLibrary::make()
             ->navigationGroup('Content')
-//            ->navigationSort(1)
-//            ->navigationLabel('Media Browser')
             ->navigationIcon('heroicon-o-camera')
             ->activeNavigationIcon('heroicon-s-camera')
-//            ->pageTitle('Media Browser')
             ->acceptPdf()
             ->acceptVideo()
             ->driver(modifyDriverUsing: function (MediaLibraryItemDriver $driver) {
@@ -75,10 +73,65 @@ class MediaHelper extends Command
                     ->conversionThumb(enabled: true, width: 600, height: 600, modifyUsing: function (Conversion $conversion) {
                         return $conversion->format('webp');
                     });
+
+                $driver->registerConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
+                    $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?? '{}', true);
+
+                    foreach ($mediaLibraryItemConversions as $conversion) {
+                        if (is_array($conversion)) {
+                            foreach ($conversion as $key => $value) {
+                                if ($key == 'widen') {
+                                    $mediaLibraryItem
+                                        ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                        ->format('webp')
+                                        ->width(is_array($value) ? $value[0] : $value);
+                                } elseif ($key == 'heighten') {
+                                    $mediaLibraryItem
+                                        ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                        ->format('webp')
+                                        ->width(is_array($value) ? $value[0] : $value);
+                                } elseif ($key == 'fit') {
+                                    $mediaLibraryItem
+                                        ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                        ->format('webp')
+                                        ->fit(Fit::Crop, $value[0], $value[1]);
+                                } elseif ($key == 'contain') {
+                                    $mediaLibraryItem
+                                        ->addMediaConversion(mediaHelper()->getConversionName($conversion))
+                                        ->format('webp')
+                                        ->fit(Fit::Contain, $value[0], $value[1]);
+                                }
+                            }
+                        } elseif ($conversion == 'original') {
+                            //Do nothing
+                        } elseif ($conversion == 'huge') {
+                            $mediaLibraryItem
+                                ->addMediaConversion('huge')
+                                ->format('webp')
+                                ->width(1600);
+                        } elseif ($conversion == 'large') {
+                            $mediaLibraryItem
+                                ->addMediaConversion('large')
+                                ->format('webp')
+                                ->width(1200);
+                        } elseif ($conversion == 'small') {
+                            $mediaLibraryItem
+                                ->addMediaConversion('small')
+                                ->format('webp')
+                                ->width(400);
+                        } elseif ($conversion == 'tiny') {
+                            $mediaLibraryItem
+                                ->addMediaConversion('tiny')
+                                ->format('webp')
+                                ->width(200);
+                        }
+                        $mediaLibraryItem
+                            ->addMediaConversion('medium')
+                            ->format('webp')
+                            ->width(800);
+                    }
+                });
             })
-//            ->firstAvailableUrlConversions([
-//                'thumb',
-//            ])
             ->slug('media-browser');
     }
 
@@ -92,7 +145,7 @@ class MediaHelper extends Command
         return $this->getSingleMedia($mediaId, $conversion);
     }
 
-    public function getSingleMedia(null|int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
+    public function getSingleMedia(null|int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium'): string|array|MediaLibraryItem
     {
         if (! $mediaId) {
             return '';
@@ -114,13 +167,15 @@ class MediaHelper extends Command
             $mediaId = (int)$mediaId;
         }
 
-        //        dump($conversion);
 
         $conversionName = $this->getConversionName($conversion);
 
+        if ($mediaId != 1516) {
+            return '';
+        }
+
         $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
         $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
-            return '';
             $media = MediaLibraryItem::find($mediaId);
             if (! $media) {
                 return '';
@@ -135,6 +190,7 @@ class MediaHelper extends Command
                     $hasCurrentConversion = true;
                 }
             }
+
             if (! $hasCurrentConversion) {
                 $currentRegisteredConversions[] = $conversion;
                 $media->conversions = json_encode($currentRegisteredConversions);
@@ -145,9 +201,8 @@ class MediaHelper extends Command
                 $conversionName = 'original';
             }
 
-            $media = $media->getMeta();
             $media->path = $mediaItem->getPath();
-            if ($mediaItem->mime_type === 'video/mp4') {
+            if (str($mediaItem->mime_type)->contains('video/')) {
                 $media->isVideo = true;
             } else {
                 $media->isVideo = false;

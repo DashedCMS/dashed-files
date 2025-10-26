@@ -17,7 +17,10 @@
     ],
     "require": {
         "php": "^8.4",
+        "aws/aws-sdk-php": "^3",
+        "league/flysystem-aws-s3-v3": "^3.0",
         "ralphjsmit/laravel-filament-media-library": "^4.0-beta4",
+        "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
