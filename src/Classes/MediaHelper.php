@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
+use RalphJSmit\Filament\Explore\ImageGenerators\GlideImageGenerator\Fit;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
