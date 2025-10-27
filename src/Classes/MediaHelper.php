@@ -15,8 +15,8 @@ use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
-use RalphJSmit\Filament\Explore\ImageGenerators\GlideImageGenerator\Fit;
 use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
+use Spatie\Image\Enums\Fit;
 
 class MediaHelper extends Command
 {
