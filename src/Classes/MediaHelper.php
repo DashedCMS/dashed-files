@@ -258,10 +258,10 @@ class MediaHelper extends Command
                 }
             }
 
-            return str($conversionString)->replace('--', '-');
+            return str($conversionString)->replace('--', '-') ?: 'original';
         }
 
-        return $conversion;
+        return $conversion ?: 'original';
     }
 
     public function getFolderPath(?int $folderId = null): string
