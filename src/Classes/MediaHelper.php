@@ -168,7 +168,7 @@ class MediaHelper extends Command
             $mediaId = (int)$mediaId;
         }
 
-        $conversionName = $this->getConversionName($conversion);
+        $conversionName = $this->getConversionName($conversion) ?: 'original';
 
         $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
         $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
