@@ -210,7 +210,7 @@ class MediaHelper extends Command
                 $media->url = $mediaItem->getUrl();
             } else {
                 if (!array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
-                    RegenerateMediaLibraryConversions::dispatch($mediaItem->id, $cacheTag);
+                    RegenerateMediaLibraryConversions::dispatch($mediaItem->id, $cacheTag, $conversionName, $mediaItem->generated_conversions);
                 }
                 $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
             }
