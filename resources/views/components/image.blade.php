@@ -18,7 +18,7 @@
         $height = $height ?: ($media->height ?? null);
         $url = $media->url ?? '';
         $alt = $media->altText ?? $alt;
-        $isVideo = $media->isVideo ?? false;
+        $isVideo = $media->isVideo ?? ($media->is_video ?? false);
     @endphp
     @if($isVideo)
         <video {{ $attributes }}
