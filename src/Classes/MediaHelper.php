@@ -187,22 +187,21 @@ class MediaHelper extends Command
         $mediaId = (int) $mediaId;
         $conversionName = $this->getConversionName($conversion) ?: 'original';
 
-        /** @var MediaLibraryItem|null $item */
-        $item = MediaLibraryItem::find($mediaId);
+        // ✅ Cache vóór we iets uit de DB halen
+        $cacheKey = "media-library-media-{$mediaId}-{$conversionName}";
 
-        if (! $item) {
-            return '';
-        }
+        return Cache::rememberForever($cacheKey, function () use ($mediaId, $conversionName, $conversion) {
+            /** @var MediaLibraryItem|null $item */
+            $item = MediaLibraryItem::find($mediaId);
 
-        // Versioned cache key → auto invalidatie op updated_at
-        $version = $item->updated_at?->timestamp ?? 0;
-        $cacheKey = "media-library-media-v3-{$mediaId}-{$conversionName}-{$version}";
+            if (! $item) {
+                return '';
+            }
 
-        return Cache::rememberForever($cacheKey, function () use ($item, $mediaId, $conversionName, $conversion) {
             // 1) JSON uit kolom conversion_urls halen
             $all = $this->getConversionData($item);
 
-            // 2) Staat deze conversion er al in? → direct object teruggeven
+            // 2) Staat deze conversion er al in? → direct object teruggeven, geen Spatie-call
             if (isset($all[$conversionName])) {
                 return (object) $all[$conversionName];
             }
@@ -257,12 +256,13 @@ class MediaHelper extends Command
 
             // 4) Opslaan in JSON zodat volgende call zelfs zonder cache-hit licht is
             $all[$conversionName] = [
-                'id'        => $mediaId,
-                'url'       => $url,
-                'width'     => $width,
-                'height'    => $height,
-                'mime'      => $mime,
-                'is_video'  => $isVideo,
+                'id'       => $mediaId,
+                'url'      => $url,
+                'width'    => $width,
+                'height'   => $height,
+                'mime'     => $mime,
+                'path'     => $spatie->getPath(),
+                'is_video' => $isVideo,
             ];
 
             $this->saveConversionData($item, $all);
@@ -270,9 +270,6 @@ class MediaHelper extends Command
             return (object) $all[$conversionName];
         });
     }
-
-
-
 
     public function getMultipleMedia(array $mediaIds, string $conversion = 'medium'): ?Collection
     {
