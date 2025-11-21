@@ -11,6 +11,8 @@ class MediaObserver
     public function updated(Media $media)
     {
         $filamentMedia = MediaLibraryItem::find($media->model_id);
+        $filamentMedia->conversion_urls = null;
+        $filamentMedia->save();
         foreach (json_decode($filamentMedia->conversions ?: '{}', true) as $conversion) {
             Cache::forget('media-library-media-' . $filamentMedia->id . '-' . mediaHelper()->getConversionName($conversion));
         }

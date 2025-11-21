@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles\Classes;
 
+use Spatie\Image\Enums\Fit;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -16,7 +17,6 @@ use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
 use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
-use Spatie\Image\Enums\Fit;
 
 class MediaHelper extends Command
 {
@@ -136,6 +136,21 @@ class MediaHelper extends Command
             ->slug('media-browser');
     }
 
+    private function getConversionData(MediaLibraryItem $item): array
+    {
+        try {
+            return json_decode($item->conversion_urls ?? '[]', true) ?: [];
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    private function saveConversionData(MediaLibraryItem $item, array $data): void
+    {
+        $item->conversion_urls = json_encode($data);
+        $item->save();
+    }
+
     /**
      * @return $this
      * @deprecated
@@ -146,9 +161,9 @@ class MediaHelper extends Command
         return $this->getSingleMedia($mediaId, $conversion);
     }
 
-    public function getSingleMedia(null|int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium'): string|array|MediaLibraryItem
+    public function getSingleMedia(null|int|string|array|MediaItemMeta $mediaId, array|string $conversion = 'medium')
     {
-        if (!$mediaId) {
+        if (! $mediaId) {
             return '';
         }
 
@@ -156,70 +171,108 @@ class MediaHelper extends Command
             $mediaId = $mediaId->id;
         }
 
-        if (is_string($mediaId) && filter_var($mediaId, FILTER_VALIDATE_INT) === false) {
+        // Als het geen integer-string is → we gaan er vanuit dat het al een URL/tekst is
+        if (is_string($mediaId) && ! ctype_digit($mediaId)) {
             return $mediaId;
         }
 
         if (is_array($mediaId)) {
-            $mediaId = $mediaId[0];
+            $mediaId = $mediaId[0] ?? null;
         }
 
-        if (!is_int($mediaId)) {
-            $mediaId = (int)$mediaId;
+        if (! $mediaId) {
+            return '';
         }
 
+        $mediaId = (int) $mediaId;
         $conversionName = $this->getConversionName($conversion) ?: 'original';
 
-        $cacheTag = 'media-library-media-' . $mediaId . '-' . $conversionName;
-        $media = Cache::rememberForever($cacheTag, function () use ($mediaId, $conversion, $conversionName, $cacheTag) {
-            $media = MediaLibraryItem::find($mediaId);
-            if (!$media) {
-                return '';
+        /** @var MediaLibraryItem|null $item */
+        $item = MediaLibraryItem::find($mediaId);
+
+        if (! $item) {
+            return '';
+        }
+
+        // Versioned cache key → auto invalidatie op updated_at
+        $version = $item->updated_at?->timestamp ?? 0;
+        $cacheKey = "media-library-media-v3-{$mediaId}-{$conversionName}-{$version}";
+
+        return Cache::rememberForever($cacheKey, function () use ($item, $mediaId, $conversionName, $conversion) {
+            // 1) JSON uit kolom conversion_urls halen
+            $all = $this->getConversionData($item);
+
+            // 2) Staat deze conversion er al in? → direct object teruggeven
+            if (isset($all[$conversionName])) {
+                return (object) $all[$conversionName];
             }
 
-            $mediaItem = $media->getItem();
+            // 3) Zware pad: Spatie Media ophalen + URL genereren
+            $spatie = $item->getItem(); // Spatie\MediaLibrary\Media
 
-            if (str($mediaItem->mime_type)->contains(['video/', 'application/pdf', 'image/svg', 'image/svg+xml', 'image/gif'])) {
-                $conversionName = 'original';
-            }
+            $mime = $spatie->mime_type;
+            $isVideo = str($mime)->startsWith('video/');
 
-            if ($conversionName != 'original') {
-                $hasCurrentConversion = false;
-                $currentRegisteredConversions = json_decode($media->conversions ?: '{}', true);
-                foreach ($currentRegisteredConversions as $registeredConversion) {
-                    if ($registeredConversion === $conversion) {
-                        $hasCurrentConversion = true;
-                    }
+            // Niet-image types altijd op original houden
+            $isNonImage = str($mime)->contains([
+                'video/',
+                'application/pdf',
+                'image/svg',
+                'image/svg+xml',
+                'image/gif',
+            ]);
+
+            $effective = $isNonImage ? 'original' : $conversionName;
+
+            // conversions array updaten als deze conversion nog niet geregistreerd is
+            if ($effective !== 'original') {
+                $currentRegistered = json_decode($item->conversions ?: '[]', true) ?: [];
+
+                if (! in_array($conversion, $currentRegistered, true)) {
+                    $currentRegistered[] = $conversion;
+                    $item->conversions = json_encode($currentRegistered);
                 }
-
-                if (!$hasCurrentConversion) {
-                    $currentRegisteredConversions[] = $conversion;
-                    $media->conversions = json_encode($currentRegisteredConversions);
-                    $media->save();
-                }
             }
 
-            $media->path = $mediaItem->getPath();
-            if (str($mediaItem->mime_type)->contains('video/')) {
-                $media->isVideo = true;
+            // URL opvragen (de zware calls, maar nu alleen hier)
+            if ($effective === 'original') {
+                $url = $spatie->getUrl();
             } else {
-                $media->isVideo = false;
-            }
+                $generated = $spatie->generated_conversions ?? [];
 
-            if ($conversionName == 'original') {
-                $media->url = $mediaItem->getUrl();
-            } else {
-                if (!array_key_exists($conversionName, $mediaItem->generated_conversions) || $mediaItem->generated_conversions[$conversionName] !== true) {
-                    RegenerateMediaLibraryConversions::dispatch($mediaItem->id, $cacheTag, $conversionName, $mediaItem->generated_conversions);
+                if (! ($generated[$effective] ?? false)) {
+                    RegenerateMediaLibraryConversions::dispatch(
+                        $spatie->id,
+                        null,
+                        $effective,
+                        $generated
+                    );
                 }
-                $media->url = $mediaItem->getAvailableUrl([$conversionName, 'medium']);
+
+                $url = $spatie->getAvailableUrl([$effective, 'medium']);
             }
 
-            return $media;
+            $width = $spatie->width;
+            $height = $spatie->height;
+
+            // 4) Opslaan in JSON zodat volgende call zelfs zonder cache-hit licht is
+            $all[$conversionName] = [
+                'id'        => $mediaId,
+                'url'       => $url,
+                'width'     => $width,
+                'height'    => $height,
+                'mime'      => $mime,
+                'is_video'  => $isVideo,
+            ];
+
+            $this->saveConversionData($item, $all);
+
+            return (object) $all[$conversionName];
         });
-
-        return $media;
     }
+
+
+
 
     public function getMultipleMedia(array $mediaIds, string $conversion = 'medium'): ?Collection
     {

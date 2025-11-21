@@ -26,7 +26,7 @@ class RegenerateMediaLibraryConversions implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(int $mediaId, string $cacheTag, ?string $conversionName, ?array $generatedConversion = null)
+    public function __construct(int $mediaId, ?string $cacheTag = null, ?string $conversionName, ?array $generatedConversion = null)
     {
         $this->mediaId = $mediaId;
         $this->cacheTag = $cacheTag;
