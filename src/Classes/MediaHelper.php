@@ -256,12 +256,12 @@ class MediaHelper extends Command
 
             // 4) Opslaan in JSON zodat volgende call zelfs zonder cache-hit licht is
             $all[$conversionName] = [
-                'id'       => $mediaId,
-                'url'      => $url,
-                'width'    => $width,
-                'height'   => $height,
-                'mime'     => $mime,
-                'path'     => $spatie->getPath(),
+                'id' => $mediaId,
+                'url' => $url,
+                'width' => $width,
+                'height' => $height,
+                'mime' => $mime,
+                'path' => $spatie->getPath(),
                 'is_video' => $isVideo,
             ];
 
@@ -295,7 +295,7 @@ class MediaHelper extends Command
         if (is_array($conversion)) {
             $conversionString = '';
             foreach ($conversion as $key => $conv) {
-                if (!is_int($key)) {
+                if (! is_int($key)) {
                     $conversionString .= "$key-";
                 }
                 if ($isChild) {
@@ -335,7 +335,7 @@ class MediaHelper extends Command
 
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
-            if (!$mediaFolder) {
+            if (! $mediaFolder) {
                 $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
@@ -380,7 +380,7 @@ class MediaHelper extends Command
             $fileContent = $response->body();
             $fileType = $response->header('Content-Type');
             $fileName = basename($path);
-            if (!str($fileName)->contains('.')) {
+            if (! str($fileName)->contains('.')) {
                 $fileName .= '.' . str($fileType)->explode('/')[1];
             }
             $path = '/tmp/' . $fileName;

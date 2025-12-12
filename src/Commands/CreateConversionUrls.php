@@ -3,7 +3,6 @@
 namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 
 class CreateConversionUrls extends Command

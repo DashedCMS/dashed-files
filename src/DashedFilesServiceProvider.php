@@ -2,12 +2,12 @@
 
 namespace Dashed\DashedFiles;
 
-use Dashed\DashedFiles\Commands\CreateConversionUrls;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\Upload\FilamentUpload;
 use Dashed\DashedFiles\Observers\MediaObserver;
 use Dashed\DashedFiles\Commands\ClearTempImages;
+use Dashed\DashedFiles\Commands\CreateConversionUrls;
 use Dashed\DashedCore\Support\MeasuresServiceProvider;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
