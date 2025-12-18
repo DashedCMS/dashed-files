@@ -248,7 +248,7 @@ class MediaHelper extends Command
                     );
                 }
 
-                $url = $spatie->getAvailableUrl([$effective, 'medium']);
+                $url = $spatie->getAvailableUrl([$effective, 'medium', 'original']);
             }
 
             $width = $spatie->width;
