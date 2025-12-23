@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles;
 
+use Dashed\DashedFiles\Commands\ClearMediaConversions;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\Upload\FilamentUpload;
@@ -58,6 +59,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 MigrateImagesInDatabase::class,
                 MigrateImagesToNewPath::class,
                 ClearTempImages::class,
+                ClearMediaConversions::class,
             ])
             ->hasConfigFile([
                 'media-library',
