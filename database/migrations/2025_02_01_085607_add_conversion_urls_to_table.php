@@ -10,7 +10,7 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('filament_media_library', 'conversion_urls')) {
+        if (! Schema::hasColumn('filament_media_library', 'conversion_urls')) {
             Schema::table('filament_media_library', function (Blueprint $table) {
                 $table->json('conversion_urls')->nullable();
             });

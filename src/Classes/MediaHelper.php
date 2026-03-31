@@ -184,7 +184,7 @@ class MediaHelper extends Command
             return '';
         }
 
-        $mediaId = (int) $mediaId;
+        $mediaId = (int)$mediaId;
         $conversionName = $this->getConversionName($conversion) ?: 'original';
 
         // ✅ Cache vóór we iets uit de DB halen
@@ -203,7 +203,7 @@ class MediaHelper extends Command
 
             // 2) Staat deze conversion er al in? → direct object teruggeven, geen Spatie-call
             if (isset($all[$conversionName])) {
-                return (object) $all[$conversionName];
+                return (object)$all[$conversionName];
             }
 
             // 3) Zware pad: Spatie Media ophalen + URL genereren
@@ -267,7 +267,7 @@ class MediaHelper extends Command
 
             $this->saveConversionData($item, $all);
 
-            return (object) $all[$conversionName];
+            return (object)$all[$conversionName];
         });
     }
 
@@ -367,22 +367,33 @@ class MediaHelper extends Command
     {
         $folderId = $this->getFolderId($folder);
 
+
         if ($existingFile = $this->getFileId($path, $folderId)) {
             return $existingFile;
         }
 
         if ($isExternalImage) {
+
             try {
                 $response = Http::timeout(3)->retry(3)->get($path);
             } catch (\Exception $e) {
                 return null;
             }
-            $fileContent = $response->body();
             $fileType = $response->header('Content-Type');
             $fileName = basename($path);
             if (! str($fileName)->contains('.')) {
                 $fileName .= '.' . str($fileType)->explode('/')[1];
             }
+
+            if ($existingFile = $this->getFileId($fileName, $folderId)) {
+                return $existingFile;
+            }
+
+            $fileContent = $response->body();
+            if (! $fileContent) {
+                return null;
+            }
+
             $path = '/tmp/' . $fileName;
             Storage::disk('dashed')->put($path, $fileContent);
         }
