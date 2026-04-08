@@ -29,6 +29,8 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 
     public function packageBooted()
     {
+        $this->app->singleton(\Dashed\DashedFiles\Classes\MediaHelper::class);
+
         Media::observe(MediaObserver::class);
 
         $this->app->booted(function () {

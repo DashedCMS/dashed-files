@@ -20,6 +20,8 @@ use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
 
 class MediaHelper extends Command
 {
+    private static array $memoryCache = [];
+
     public function field($name = 'image', $label = 'Afbeelding', bool $required = false, bool $multiple = false, bool $isImage = false, null|int|string $defaultFolder = null): TextInput|MediaPicker|AdvancedFileUpload
     {
         //        $mediaPicker = AdvancedFileUpload::make($name)
@@ -186,60 +188,124 @@ class MediaHelper extends Command
 
         $mediaId = (int)$mediaId;
         $conversionName = $this->getConversionName($conversion) ?: 'original';
-
-        // ✅ Cache vóór we iets uit de DB halen
         $cacheKey = "media-library-media-{$mediaId}-{$conversionName}";
 
-        return Cache::rememberForever($cacheKey, function () use ($mediaId, $conversionName, $conversion) {
-            /** @var MediaLibraryItem|null $item */
+        // 1) In-process memory cache (zero cost)
+        if (isset(static::$memoryCache[$cacheKey])) {
+            return static::$memoryCache[$cacheKey];
+        }
+
+        // 2) Redis cache
+        $result = Cache::rememberForever($cacheKey, function () use ($mediaId, $conversionName, $conversion) {
             $item = MediaLibraryItem::find($mediaId);
+            return $this->resolveMediaUrl($item, $conversionName, $conversion, $mediaId);
+        });
 
-            if (! $item) {
-                return '';
+        static::$memoryCache[$cacheKey] = $result;
+
+        return $result;
+    }
+
+    /**
+     * Preload media URLs for multiple IDs in a single Redis MGET + single DB query.
+     */
+    public function preloadMediaUrls(array $mediaIds, array|string $conversion = 'medium'): void
+    {
+        $conversionName = $this->getConversionName($conversion) ?: 'original';
+
+        // Filter and deduplicate
+        $mediaIds = array_values(array_unique(array_filter(array_map('intval', $mediaIds))));
+
+        $keysToFetch = [];
+        foreach ($mediaIds as $id) {
+            $key = "media-library-media-{$id}-{$conversionName}";
+            if (! isset(static::$memoryCache[$key])) {
+                $keysToFetch[$id] = $key;
             }
+        }
 
-            // 1) JSON uit kolom conversion_urls halen
-            $all = $this->getConversionData($item);
+        if (empty($keysToFetch)) {
+            return;
+        }
 
-            // 2) Staat deze conversion er al in? → direct object teruggeven, geen Spatie-call
-            if (isset($all[$conversionName])) {
-                return (object)$all[$conversionName];
-            }
+        // Single Redis MGET for all keys
+        $values = Cache::many(array_values($keysToFetch));
 
-            // 3) Zware pad: Spatie Media ophalen + URL genereren
-            $spatie = $item->getItem(); // Spatie\MediaLibrary\Media
-
-            $mime = $spatie->mime_type;
-            $isVideo = str($mime)->startsWith('video/');
-
-            // Niet-image types altijd op original houden
-            $isNonImage = str($mime)->contains([
-                'video/',
-                'application/pdf',
-                'image/svg',
-                'image/svg+xml',
-                'image/gif',
-            ]);
-
-            $effective = $isNonImage ? 'original' : $conversionName;
-
-            // conversions array updaten als deze conversion nog niet geregistreerd is
-            if ($effective !== 'original') {
-                $currentRegistered = json_decode($item->conversions ?: '[]', true) ?: [];
-
-                if (! in_array($conversion, $currentRegistered, true)) {
-                    $currentRegistered[] = $conversion;
-                    $item->conversions = json_encode($currentRegistered);
-                }
-            }
-
-            // URL opvragen (de zware calls, maar nu alleen hier)
-            if ($effective === 'original') {
-                $url = $spatie->getUrl();
+        $missingIds = [];
+        foreach ($keysToFetch as $id => $key) {
+            if ($values[$key] !== null) {
+                static::$memoryCache[$key] = $values[$key];
             } else {
-                $generated = $spatie->generated_conversions ?? [];
+                $missingIds[] = $id;
+            }
+        }
 
-                if (! ($generated[$effective] ?? false)) {
+        // Batch-load cache misses from DB in one query
+        if (! empty($missingIds)) {
+            $items = MediaLibraryItem::whereIn('id', $missingIds)->get()->keyBy('id');
+
+            foreach ($missingIds as $id) {
+                $key = "media-library-media-{$id}-{$conversionName}";
+                $item = $items->get($id);
+                $result = $this->resolveMediaUrl($item, $conversionName, $conversion, $id);
+
+                Cache::forever($key, $result);
+                static::$memoryCache[$key] = $result;
+            }
+        }
+    }
+
+    /**
+     * Resolve a media URL from a MediaLibraryItem (shared by getSingleMedia and preloadMediaUrls).
+     */
+    private function resolveMediaUrl(?MediaLibraryItem $item, string $conversionName, array|string $conversion, int $mediaId): mixed
+    {
+        if (! $item) {
+            return '';
+        }
+
+        // 1) JSON uit kolom conversion_urls halen
+        $all = $this->getConversionData($item);
+
+        // 2) Staat deze conversion er al in? → direct object teruggeven
+        if (isset($all[$conversionName])) {
+            return (object)$all[$conversionName];
+        }
+
+        // 3) Zware pad: Spatie Media ophalen + URL genereren
+        $spatie = $item->getItem();
+
+        $mime = $spatie->mime_type;
+        $isVideo = str($mime)->startsWith('video/');
+
+        $isNonImage = str($mime)->contains([
+            'video/',
+            'application/pdf',
+            'image/svg',
+            'image/svg+xml',
+            'image/gif',
+        ]);
+
+        $effective = $isNonImage ? 'original' : $conversionName;
+
+        if ($effective !== 'original') {
+            $currentRegistered = json_decode($item->conversions ?: '[]', true) ?: [];
+
+            if (! in_array($conversion, $currentRegistered, true)) {
+                $currentRegistered[] = $conversion;
+                $item->conversions = json_encode($currentRegistered);
+            }
+        }
+
+        if ($effective === 'original') {
+            $url = $spatie->getUrl();
+        } else {
+            $generated = $spatie->generated_conversions ?? [];
+
+            if (! ($generated[$effective] ?? false)) {
+                $lockKey = "regenerate-media-{$spatie->id}-{$effective}";
+                if (! Cache::has($lockKey)) {
+                    Cache::put($lockKey, true, 300);
                     RegenerateMediaLibraryConversions::dispatch(
                         $spatie->id,
                         null,
@@ -247,47 +313,35 @@ class MediaHelper extends Command
                         $generated
                     );
                 }
-
-                $url = $spatie->getAvailableUrl([$effective, 'medium', 'original']);
             }
 
-            $width = $spatie->width;
-            $height = $spatie->height;
+            $url = $spatie->getAvailableUrl([$effective, 'medium', 'original']);
+        }
 
-            // 4) Opslaan in JSON zodat volgende call zelfs zonder cache-hit licht is
-            $all[$conversionName] = [
-                'id' => $mediaId,
-                'url' => $url,
-                'width' => $width,
-                'height' => $height,
-                'mime' => $mime,
-                'path' => $spatie->getPath(),
-                'is_video' => $isVideo,
-            ];
+        $all[$conversionName] = [
+            'id' => $mediaId,
+            'url' => $url,
+            'width' => $spatie->width,
+            'height' => $spatie->height,
+            'mime' => $mime,
+            'path' => $spatie->getPath(),
+            'is_video' => $isVideo,
+        ];
 
-            $this->saveConversionData($item, $all);
+        $this->saveConversionData($item, $all);
 
-            return (object)$all[$conversionName];
-        });
+        return (object)$all[$conversionName];
     }
 
     public function getMultipleMedia(array $mediaIds, string $conversion = 'medium'): ?Collection
     {
-        if (is_string($mediaIds)) {
+        if (is_string($mediaIds) || is_int($mediaIds)) {
             return null;
         }
 
-        if (is_int($mediaIds)) {
-            return null;
-        }
+        $this->preloadMediaUrls($mediaIds, $conversion);
 
-        $medias = [];
-
-        foreach ($mediaIds as $id) {
-            $medias[] = $this->getSingleMedia($id, $conversion);
-        }
-
-        return collect($medias);
+        return collect($mediaIds)->map(fn ($id) => $this->getSingleMedia($id, $conversion));
     }
 
     public function getConversionName(string|array $conversion, $isChild = false): string
