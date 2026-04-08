@@ -198,6 +198,7 @@ class MediaHelper extends Command
         // 2) Redis cache
         $result = Cache::rememberForever($cacheKey, function () use ($mediaId, $conversionName, $conversion) {
             $item = MediaLibraryItem::find($mediaId);
+
             return $this->resolveMediaUrl($item, $conversionName, $conversion, $mediaId);
         });
 
