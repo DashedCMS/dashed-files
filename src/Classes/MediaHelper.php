@@ -158,7 +158,7 @@ class MediaHelper extends Command
      * @deprecated
      *
      */
-    public function getSingleImage(null|int|string|array $mediaId, array|string $conversion = 'medium'): string|MediaItemMeta
+    public function getSingleImage(null|int|string|array $mediaId, array|string $conversion = 'medium')
     {
         return $this->getSingleMedia($mediaId, $conversion);
     }
