@@ -21,6 +21,20 @@
         $alt = $media->altText ?? $alt;
         $isVideo = $media->isVideo ?? ($media->is_video ?? false);
 
+        // Fall back to manipulations if media has no dimensions
+        if (! $width || ! $height) {
+            if (! empty($manipulations['fit'])) {
+                $width = $width ?: ($manipulations['fit'][0] ?? null);
+                $height = $height ?: ($manipulations['fit'][1] ?? null);
+            }
+            if (! empty($manipulations['widen'])) {
+                $width = $width ?: $manipulations['widen'];
+            }
+            if (! empty($manipulations['heighten'])) {
+                $height = $height ?: $manipulations['heighten'];
+            }
+        }
+
         if ($loading === null) {
             if (config('dashed-core.performance.lazy_images_default', true)) {
                 $loading = app(\Dashed\DashedCore\Performance\Images\ImagePriorityTracker::class)->next();
@@ -45,8 +59,8 @@
         </video>
     @else
         <img
-            @if($width) width="{{ $width }}" @endif
-            @if($height) height="{{ $height }}" @endif
+            width="{{ $width ?: '' }}"
+            height="{{ $height ?: '' }}"
             src="{{ $url }}"
             alt="{{ $alt }}"
             loading="{{ $loading }}"
