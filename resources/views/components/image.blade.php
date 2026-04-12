@@ -59,8 +59,8 @@
         </video>
     @else
         <img
-            @if($width) width="{{ $width }}" @endif
-            @if($height) height="{{ $height }}" @endif
+            width="{{ $width ?: '' }}"
+            height="{{ $height ?: '' }}"
             src="{{ $url }}"
             alt="{{ $alt }}"
             loading="{{ $loading }}"
