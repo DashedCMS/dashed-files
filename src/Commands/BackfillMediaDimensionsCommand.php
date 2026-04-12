@@ -2,9 +2,9 @@
 
 namespace Dashed\DashedFiles\Commands;
 
-use Dashed\DashedFiles\Jobs\BackfillMediaDimensionsJob;
 use Illuminate\Console\Command;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Dashed\DashedFiles\Jobs\BackfillMediaDimensionsJob;
 
 class BackfillMediaDimensionsCommand extends Command
 {

@@ -2,14 +2,14 @@
 
 namespace Dashed\DashedFiles\Jobs;
 
-use Dashed\DashedFiles\Observers\MediaObserver;
 use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use Dashed\DashedFiles\Observers\MediaObserver;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 
 class BackfillMediaDimensionsJob implements ShouldQueue
 {
@@ -25,7 +25,8 @@ class BackfillMediaDimensionsJob implements ShouldQueue
     public function __construct(
         public int $offset = 0,
         public int $chunkSize = 50,
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
