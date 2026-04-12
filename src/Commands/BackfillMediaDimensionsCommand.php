@@ -2,74 +2,39 @@
 
 namespace Dashed\DashedFiles\Commands;
 
-use Dashed\DashedFiles\Observers\MediaObserver;
+use Dashed\DashedFiles\Jobs\BackfillMediaDimensionsJob;
 use Illuminate\Console\Command;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class BackfillMediaDimensionsCommand extends Command
 {
-    protected $signature = 'dashed:backfill-media-dimensions {--force : Overwrite existing dimensions}';
+    protected $signature = 'dashed:backfill-media-dimensions {--chunk=50 : Items per job} {--queue=default : Queue name}';
 
-    protected $description = 'Backfill original_width and original_height for all existing image media';
+    protected $description = 'Dispatch jobs to backfill original_width/height for all image media without dimensions';
 
     public function handle(): int
     {
-        $force = $this->option('force');
-        $observer = new MediaObserver();
-
-        $query = Media::query()
+        $remaining = Media::query()
             ->where('mime_type', 'like', 'image/%')
-            ->where('mime_type', 'not like', '%svg%');
-
-        if (! $force) {
-            $query->where(function ($q) {
+            ->where('mime_type', 'not like', '%svg%')
+            ->where(function ($q) {
                 $q->whereNull('custom_properties->original_width')
                     ->orWhere('custom_properties->original_width', '');
-            });
+            })
+            ->count();
+
+        if ($remaining === 0) {
+            $this->info('All media items already have dimensions.');
+
+            return self::SUCCESS;
         }
 
-        $total = $query->count();
-        $this->info("Processing {$total} media items...");
+        $chunkSize = (int) $this->option('chunk');
+        $queue = $this->option('queue');
 
-        $bar = $this->output->createProgressBar($total);
-        $filled = 0;
-        $skipped = 0;
-        $failed = 0;
+        BackfillMediaDimensionsJob::dispatch(0, $chunkSize)->onQueue($queue);
 
-        $query->chunkById(100, function ($items) use ($observer, &$filled, &$skipped, &$failed, $bar) {
-            foreach ($items as $media) {
-                try {
-                    $dimensions = $observer->getImageDimensions($media);
-
-                    if (! $dimensions) {
-                        $skipped++;
-                        $bar->advance();
-
-                        continue;
-                    }
-
-                    $media->setCustomProperty('original_width', $dimensions[0]);
-                    $media->setCustomProperty('original_height', $dimensions[1]);
-                    $media->saveQuietly();
-
-                    // Clear the conversion_urls cache on the related MediaLibraryItem
-                    // so the next resolve picks up the new dimensions
-                    MediaLibraryItem::where('id', $media->model_id)
-                        ->update(['conversion_urls' => null]);
-
-                    $filled++;
-                } catch (\Throwable $e) {
-                    $failed++;
-                }
-
-                $bar->advance();
-            }
-        });
-
-        $bar->finish();
-        $this->newLine();
-        $this->info("Done: {$filled} filled, {$skipped} skipped, {$failed} failed");
+        $this->info("Dispatched backfill job for {$remaining} media items (chunks of {$chunkSize} on queue '{$queue}'). Each chunk auto-dispatches the next until done.");
 
         return self::SUCCESS;
     }
