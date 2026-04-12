@@ -56,6 +56,7 @@ class DashedFilesServiceProvider extends PackageServiceProvider
                 MigrateImagesToNewPath::class,
                 ClearTempImages::class,
                 ClearMediaConversions::class,
+                \Dashed\DashedFiles\Commands\BackfillMediaDimensionsCommand::class,
             ])
             ->hasConfigFile([
                 'media-library',

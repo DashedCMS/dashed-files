@@ -21,19 +21,29 @@
         $alt = $media->altText ?? $alt;
         $isVideo = $media->isVideo ?? ($media->is_video ?? false);
 
-        // Fall back to manipulations if media has no dimensions
-        if (! $width || ! $height) {
-            if (! empty($manipulations['fit'])) {
-                $width = $width ?: ($manipulations['fit'][0] ?? null);
-                $height = $height ?: ($manipulations['fit'][1] ?? null);
+        // Compute output dimensions from original aspect ratio + manipulations
+        $origW = $media->width ?? null;
+        $origH = $media->height ?? null;
+        $aspectRatio = ($origW && $origH) ? $origW / $origH : null;
+
+        if (! empty($manipulations['fit'])) {
+            $width = $width ?: ($manipulations['fit'][0] ?? null);
+            $height = $height ?: ($manipulations['fit'][1] ?? null);
+        } elseif (! empty($manipulations['widen'])) {
+            $width = $width ?: $manipulations['widen'];
+            if (! $height && $aspectRatio) {
+                $height = (int) round($manipulations['widen'] / $aspectRatio);
             }
-            if (! empty($manipulations['widen'])) {
-                $width = $width ?: $manipulations['widen'];
-            }
-            if (! empty($manipulations['heighten'])) {
-                $height = $height ?: $manipulations['heighten'];
+        } elseif (! empty($manipulations['heighten'])) {
+            $height = $height ?: $manipulations['heighten'];
+            if (! $width && $aspectRatio) {
+                $width = (int) round($manipulations['heighten'] * $aspectRatio);
             }
         }
+
+        // Fall back to original dimensions if still missing
+        if (! $width) { $width = $origW; }
+        if (! $height) { $height = $origH; }
 
         if ($loading === null) {
             if (config('dashed-core.performance.lazy_images_default', true)) {

@@ -322,8 +322,8 @@ class MediaHelper extends Command
         $all[$conversionName] = [
             'id' => $mediaId,
             'url' => $url,
-            'width' => $spatie->width,
-            'height' => $spatie->height,
+            'width' => $spatie->getCustomProperty('original_width') ?? $spatie->width,
+            'height' => $spatie->getCustomProperty('original_height') ?? $spatie->height,
             'mime' => $mime,
             'path' => $spatie->getPath(),
             'is_video' => $isVideo,
