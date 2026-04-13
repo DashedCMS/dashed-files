@@ -17,6 +17,8 @@ use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
 use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
+use Dashed\DashedFiles\Filament\Actions\AiGenerateImageAction;
+use Dashed\DashedFiles\Services\AiImageGenerator;
 
 class MediaHelper extends Command
 {
@@ -52,6 +54,10 @@ class MediaHelper extends Command
             }
 
             $mediaPicker->defaultFolder(MediaLibraryFolder::find($defaultFolder));
+        }
+
+        if (! $multiple && AiImageGenerator::isConfigured()) {
+            $mediaPicker->hintAction(AiGenerateImageAction::make());
         }
 
         return $mediaPicker;
