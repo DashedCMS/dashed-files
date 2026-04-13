@@ -56,8 +56,10 @@ class MediaHelper extends Command
             $mediaPicker->defaultFolder(MediaLibraryFolder::find($defaultFolder));
         }
 
-        if (! $multiple && AiImageGenerator::isConfigured()) {
-            $mediaPicker->hintAction(AiGenerateImageAction::make());
+        if (! $multiple) {
+            $mediaPicker->hintAction(
+                AiGenerateImageAction::make()->visible(fn () => AiImageGenerator::isConfigured())
+            );
         }
 
         return $mediaPicker;
