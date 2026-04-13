@@ -40,7 +40,6 @@ class BackfillMediaDimensionsJob implements ShouldQueue
                     ->orWhere('custom_properties->original_width', '');
             })
             ->orderBy('id')
-            ->skip($this->offset)
             ->take($this->chunkSize)
             ->get();
 
@@ -52,6 +51,10 @@ class BackfillMediaDimensionsJob implements ShouldQueue
             try {
                 $dimensions = $observer->getImageDimensions($media);
                 if (! $dimensions) {
+                    $media->setCustomProperty('original_width', 0);
+                    $media->setCustomProperty('original_height', 0);
+                    $media->saveQuietly();
+
                     continue;
                 }
 
@@ -62,24 +65,15 @@ class BackfillMediaDimensionsJob implements ShouldQueue
                 MediaLibraryItem::where('id', $media->model_id)
                     ->update(['conversion_urls' => null]);
             } catch (\Throwable $e) {
-                // Skip individual failures
+                $media->setCustomProperty('original_width', 0);
+                $media->setCustomProperty('original_height', 0);
+                $media->saveQuietly();
             }
         }
 
-        // Dispatch next chunk if there are more
-        $remaining = Media::query()
-            ->where('mime_type', 'like', 'image/%')
-            ->where('mime_type', 'not like', '%svg%')
-            ->where(function ($q) {
-                $q->whereNull('custom_properties->original_width')
-                    ->orWhere('custom_properties->original_width', '');
-            })
-            ->exists();
-
-        if ($remaining) {
-            self::dispatch(0, $this->chunkSize)
-                ->onQueue($this->queue ?? 'default')
-                ->delay(now()->addSeconds(5));
-        }
+        // Dispatch next chunk — offset stays 0 because processed items fall out of the query
+        self::dispatch(0, $this->chunkSize)
+            ->onQueue($this->queue ?? 'default')
+            ->delay(now()->addSeconds(5));
     }
 }
