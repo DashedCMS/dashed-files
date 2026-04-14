@@ -25,6 +25,37 @@ class DashedFilesServiceProvider extends PackageServiceProvider
             'medialibrary-config',
         ]);
 
+        cms()->registerSettingsDocs(
+            page: \Dashed\DashedFiles\Filament\Pages\FilesPage::class,
+            title: 'Bestanden',
+            intro: 'De mediabibliotheek van de website. Hier beheer je alle afbeeldingen, videos en documenten die op de site gebruikt worden.',
+            sections: [
+                [
+                    'heading' => 'Wat zie je hier?',
+                    'body' => <<<MARKDOWN
+Een ingebedde bestandsbrowser met:
+
+- Een **mappenstructuur** om bestanden te ordenen per onderwerp, project of pagina.
+- Een **uploadknop** om nieuwe bestanden toe te voegen.
+- Een **detailweergave** per bestand met naam, afmetingen en andere metadata.
+- **Acties** om bestanden te hernoemen, verplaatsen of verwijderen.
+MARKDOWN,
+                ],
+                [
+                    'heading' => 'Wat kun je hier doen?',
+                    'body' => <<<MARKDOWN
+- Bladeren door mappen om een bestaand bestand terug te vinden.
+- Nieuwe bestanden uploaden vanaf je computer.
+- Bestanden verwijderen die je niet meer gebruikt.
+- Metadata van een bestand bewerken, bijvoorbeeld de naam of de map waarin het staat.
+MARKDOWN,
+                ],
+            ],
+            tips: [
+                'Maak duidelijke mappen per onderwerp. Een opgeruimde bibliotheek werkt bij elke upload in je voordeel.',
+                'Verwijder een bestand pas als je zeker weet dat het nergens meer op de site gebruikt wordt.',
+            ],
+        );
     }
 
     public function packageBooted()
