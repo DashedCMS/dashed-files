@@ -103,7 +103,7 @@ class AiGenerateImageAction
                 ->label('Referentieafbeelding (optioneel)')
                 ->helperText('Met referentie wordt het product 1-op-1 behouden via nano-banana/edit.')
                 ->options([
-                    'none' => 'Geen — tekst-naar-beeld (flux/dev)',
+                    'none' => 'Geen - tekst-naar-beeld (flux/dev)',
                     'url' => 'URL invoeren',
                     'upload' => 'Uploaden',
                     'model' => 'Kies uit onderwerp in de CMS',
@@ -213,7 +213,7 @@ class AiGenerateImageAction
 
                     return $url
                         ? new HtmlString('<img src="'.e($url).'" style="max-height:180px;border-radius:8px;" />')
-                        : '—';
+                        : '-';
                 })
                 ->visible(fn (callable $get) => $get('reference_source') !== 'none'),
         ];

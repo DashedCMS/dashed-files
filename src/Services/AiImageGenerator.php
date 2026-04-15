@@ -24,8 +24,7 @@ class AiImageGenerator
         ?string $folder = 'ai-generated',
         ?string $siteId = null,
     ): ?int {
-        $apiKey = Customsetting::get('fal_api_key', $siteId)
-            ?: Customsetting::get('social_fal_api_key', $siteId);
+        $apiKey = Customsetting::get('fal_api_key', $siteId);
 
         if (! $apiKey || ! trim($prompt)) {
             return null;
@@ -119,9 +118,6 @@ class AiImageGenerator
 
     public static function isConfigured(?string $siteId = null): bool
     {
-        return (bool) (
-            Customsetting::get('fal_api_key', $siteId)
-            ?: Customsetting::get('social_fal_api_key', $siteId)
-        );
+        return (bool) Customsetting::get('fal_api_key', $siteId);
     }
 }

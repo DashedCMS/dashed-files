@@ -71,7 +71,7 @@ class BackfillMediaDimensionsJob implements ShouldQueue
             }
         }
 
-        // Dispatch next chunk — offset stays 0 because processed items fall out of the query
+        // Dispatch next chunk - offset stays 0 because processed items fall out of the query
         self::dispatch(0, $this->chunkSize)
             ->onQueue($this->queue ?? 'default')
             ->delay(now()->addSeconds(5));

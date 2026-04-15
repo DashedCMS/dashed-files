@@ -11,6 +11,6 @@ return new class () extends Migration {
 
     public function down(): void
     {
-        // Nothing to reverse — dimensions stay in custom_properties
+        // Nothing to reverse - dimensions stay in custom_properties
     }
 };
