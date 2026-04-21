@@ -66,7 +66,7 @@ MARKDOWN,
 
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
-            $schedule->command('dashed:clear-temp-images')->daily();
+            $schedule->command('dashed:clear-temp-images')->hourly()->withoutOverlapping();
             $schedule->command(CreateConversionUrls::class)->hourly()->withoutOverlapping();
         });
     }
