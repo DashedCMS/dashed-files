@@ -2,19 +2,20 @@
 
 namespace Dashed\DashedFiles\Filament\Actions;
 
+use Dashed\DashedFiles\Services\AiImageGenerator;
+use Dashed\DashedFiles\Services\SubjectImageResolver;
 use Filament\Actions\Action;
-use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Placeholder;
-use Dashed\DashedFiles\Services\AiImageGenerator;
+use Filament\Schemas\Components\Component;
 use Illuminate\Support\Facades\Schema as DbSchema;
-use Dashed\DashedFiles\Services\SubjectImageResolver;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 
 class AiGenerateImageAction
 {
@@ -63,7 +64,14 @@ class AiGenerateImageAction
                     return;
                 }
 
-                $component->state($mediaId);
+                $current = $component->getState();
+
+                if (is_array($current)) {
+                    $current[] = $mediaId;
+                    $component->state(array_values($current));
+                } else {
+                    $component->state($mediaId);
+                }
 
                 Notification::make()
                     ->title('Afbeelding gegenereerd')
@@ -74,7 +82,7 @@ class AiGenerateImageAction
     }
 
     /**
-     * @return array<int, \Filament\Schemas\Components\Component>
+     * @return array<int, Component>
      */
     private static function buildSchema(): array
     {
@@ -145,7 +153,7 @@ class AiGenerateImageAction
                     if (! $class || ! class_exists($class)) {
                         return [];
                     }
-                    $model = new $class();
+                    $model = new $class;
 
                     return $class::query()
                         ->where(function ($q) use ($search, $model) {

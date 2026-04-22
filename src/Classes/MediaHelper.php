@@ -2,23 +2,23 @@
 
 namespace Dashed\DashedFiles\Classes;
 
-use Spatie\Image\Enums\Fit;
-use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-use Filament\Forms\Components\TextInput;
-use Spatie\MediaLibrary\Conversions\Conversion;
-use Dashed\DashedFiles\Services\AiImageGenerator;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Filament\Actions\AiGenerateImageAction;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
+use Dashed\DashedFiles\Services\AiImageGenerator;
+use Filament\Forms\Components\TextInput;
+use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
 use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
+use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\Conversions\Conversion;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MediaHelper extends Command
 {
@@ -56,11 +56,9 @@ class MediaHelper extends Command
             $mediaPicker->defaultFolder(MediaLibraryFolder::find($defaultFolder));
         }
 
-        if (! $multiple) {
-            $mediaPicker->hintAction(
-                AiGenerateImageAction::make()->visible(fn () => AiImageGenerator::isConfigured())
-            );
-        }
+        $mediaPicker->hintAction(
+            AiGenerateImageAction::make()->visible(fn () => AiImageGenerator::isConfigured())
+        );
 
         return $mediaPicker;
     }
@@ -85,7 +83,7 @@ class MediaHelper extends Command
                         return $conversion->format('webp');
                     });
 
-                $driver->registerConversions(function (MediaLibraryItem $mediaLibraryItem, Media $media = null) {
+                $driver->registerConversions(function (MediaLibraryItem $mediaLibraryItem, ?Media $media = null) {
                     $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?? '{}', true);
 
                     foreach ($mediaLibraryItemConversions as $conversion) {
@@ -114,7 +112,7 @@ class MediaHelper extends Command
                                 }
                             }
                         } elseif ($conversion == 'original') {
-                            //Do nothing
+                            // Do nothing
                         } elseif ($conversion == 'huge') {
                             $mediaLibraryItem
                                 ->addMediaConversion('huge')
@@ -163,8 +161,8 @@ class MediaHelper extends Command
 
     /**
      * @return $this
-     * @deprecated
      *
+     * @deprecated
      */
     public function getSingleImage(null|int|string|array $mediaId, array|string $conversion = 'medium')
     {
@@ -194,7 +192,7 @@ class MediaHelper extends Command
             return '';
         }
 
-        $mediaId = (int)$mediaId;
+        $mediaId = (int) $mediaId;
         $conversionName = $this->getConversionName($conversion) ?: 'original';
         $cacheKey = "media-library-media-{$mediaId}-{$conversionName}";
 
@@ -278,7 +276,7 @@ class MediaHelper extends Command
 
         // 2) Staat deze conversion er al in? → direct object teruggeven
         if (isset($all[$conversionName])) {
-            return (object)$all[$conversionName];
+            return (object) $all[$conversionName];
         }
 
         // 3) Zware pad: Spatie Media ophalen + URL genereren
@@ -339,7 +337,7 @@ class MediaHelper extends Command
 
         $this->saveConversionData($item, $all);
 
-        return (object)$all[$conversionName];
+        return (object) $all[$conversionName];
     }
 
     public function getMultipleMedia(array $mediaIds, string $conversion = 'medium'): ?Collection
@@ -384,7 +382,7 @@ class MediaHelper extends Command
 
         if ($folder) {
             foreach ($folder->getAncestors() as $ancestor) {
-                $path .= $ancestor->name . '/';
+                $path .= $ancestor->name.'/';
             }
         }
 
@@ -399,7 +397,7 @@ class MediaHelper extends Command
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
             if (! $mediaFolder) {
-                $mediaFolder = new MediaLibraryFolder();
+                $mediaFolder = new MediaLibraryFolder;
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
                 $mediaFolder->save();
@@ -421,15 +419,11 @@ class MediaHelper extends Command
         return null;
     }
 
-    public function downloadImage(string $path)
-    {
-
-    }
+    public function downloadImage(string $path) {}
 
     public function uploadFromPath($path, $folder, bool $isExternalImage = false): ?int
     {
         $folderId = $this->getFolderId($folder);
-
 
         if ($existingFile = $this->getFileId($path, $folderId)) {
             return $existingFile;
@@ -445,7 +439,7 @@ class MediaHelper extends Command
             $fileType = $response->header('Content-Type');
             $fileName = basename($path);
             if (! str($fileName)->contains('.')) {
-                $fileName .= '.' . str($fileType)->explode('/')[1];
+                $fileName .= '.'.str($fileType)->explode('/')[1];
             }
 
             if ($existingFile = $this->getFileId($fileName, $folderId)) {
@@ -457,12 +451,12 @@ class MediaHelper extends Command
                 return null;
             }
 
-            $path = '/tmp/' . $fileName;
+            $path = '/tmp/'.$fileName;
             Storage::disk('dashed')->put($path, $fileContent);
         }
 
         try {
-            $filamentMediaLibraryItem = new MediaLibraryItem();
+            $filamentMediaLibraryItem = new MediaLibraryItem;
             $filamentMediaLibraryItem->uploaded_by_user_id = null;
             $filamentMediaLibraryItem->folder_id = $folderId;
             $filamentMediaLibraryItem->save();
