@@ -2,20 +2,20 @@
 
 namespace Dashed\DashedFiles\Filament\Actions;
 
-use Dashed\DashedFiles\Services\AiImageGenerator;
-use Dashed\DashedFiles\Services\SubjectImageResolver;
 use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Placeholder;
+use Illuminate\Support\HtmlString;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
 use Filament\Schemas\Components\Component;
+use Dashed\DashedFiles\Services\AiImageGenerator;
 use Illuminate\Support\Facades\Schema as DbSchema;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\HtmlString;
+use Dashed\DashedFiles\Services\SubjectImageResolver;
 
 class AiGenerateImageAction
 {
@@ -153,7 +153,7 @@ class AiGenerateImageAction
                     if (! $class || ! class_exists($class)) {
                         return [];
                     }
-                    $model = new $class;
+                    $model = new $class();
 
                     return $class::query()
                         ->where(function ($q) use ($search, $model) {

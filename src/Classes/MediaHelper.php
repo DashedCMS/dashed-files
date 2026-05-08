@@ -2,23 +2,23 @@
 
 namespace Dashed\DashedFiles\Classes;
 
-use Dashed\DashedFiles\Filament\Actions\AiGenerateImageAction;
-use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
-use Dashed\DashedFiles\Services\AiImageGenerator;
-use Filament\Forms\Components\TextInput;
+use Spatie\Image\Enums\Fit;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Filament\Forms\Components\TextInput;
+use Spatie\MediaLibrary\Conversions\Conversion;
+use Dashed\DashedFiles\Services\AiImageGenerator;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use Dashed\DashedFiles\Filament\Actions\AiGenerateImageAction;
+use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
 use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
-use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
-use Spatie\Image\Enums\Fit;
-use Spatie\MediaLibrary\Conversions\Conversion;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MediaHelper extends Command
 {
@@ -397,7 +397,7 @@ class MediaHelper extends Command
         foreach ($folders as $folder) {
             $mediaFolder = MediaLibraryFolder::where('name', $folder)->where('parent_id', $parentId)->first();
             if (! $mediaFolder) {
-                $mediaFolder = new MediaLibraryFolder;
+                $mediaFolder = new MediaLibraryFolder();
                 $mediaFolder->name = $folder;
                 $mediaFolder->parent_id = $parentId;
                 $mediaFolder->save();
@@ -419,7 +419,9 @@ class MediaHelper extends Command
         return null;
     }
 
-    public function downloadImage(string $path) {}
+    public function downloadImage(string $path)
+    {
+    }
 
     public function uploadFromPath($path, $folder, bool $isExternalImage = false): ?int
     {
@@ -456,7 +458,7 @@ class MediaHelper extends Command
         }
 
         try {
-            $filamentMediaLibraryItem = new MediaLibraryItem;
+            $filamentMediaLibraryItem = new MediaLibraryItem();
             $filamentMediaLibraryItem->uploaded_by_user_id = null;
             $filamentMediaLibraryItem->folder_id = $folderId;
             $filamentMediaLibraryItem->save();
