@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Dashed\DashedFiles\Models\AiImageOperation;
 use Dashed\DashedFiles\Services\AiImageOperations;
+use Dashed\DashedFiles\Events\AiImageOperationCompleted;
 
 class ProcessAiImageOperation implements ShouldQueue
 {
@@ -50,6 +51,8 @@ class ProcessAiImageOperation implements ShouldQueue
             'status' => AiImageOperation::STATUS_DONE,
             'result_media_id' => $resultId,
         ]);
+
+        AiImageOperationCompleted::dispatch($op->fresh());
     }
 
     public function failed(Throwable $exception): void
