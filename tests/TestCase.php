@@ -27,5 +27,11 @@ class TestCase extends Orchestra
 
         $migration = include __DIR__.'/../database/migrations/2026_06_09_100000_create_ai_image_operations_table.php';
         $migration->up();
+
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('ai_image_operations', 'context')) {
+            \Illuminate\Support\Facades\Schema::table('ai_image_operations', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->json('context')->nullable();
+            });
+        }
     }
 }

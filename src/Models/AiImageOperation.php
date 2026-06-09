@@ -23,6 +23,7 @@ class AiImageOperation extends Model
 
     protected $casts = [
         'params' => 'array',
+        'context' => 'array',
     ];
 
     public function isFinished(): bool

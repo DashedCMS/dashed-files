@@ -176,6 +176,7 @@ class AiImageOperations
         array $params = [],
         ?string $batchId = null,
         ?string $siteId = null,
+        ?array $context = null,
     ): int {
         $op = AiImageOperation::create([
             'type' => $type,
@@ -184,6 +185,7 @@ class AiImageOperations
             'params' => $params,
             'batch_id' => $batchId,
             'site_id' => $siteId,
+            'context' => $context,
         ]);
 
         ProcessAiImageOperation::dispatch($op->id);
