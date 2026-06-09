@@ -95,6 +95,13 @@ it('maakt een product-foto via een bg-removal plus studio-edit pipeline', functi
         return str_contains($request->url(), 'nano-banana/edit')
             && $request['image_urls'] === ['https://cdn.test/cutout.png'];
     });
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), 'fal-ai/birefnet')
+            && $request['image_url'] === 'https://cdn.test/source.jpg';
+    });
+
+    Http::assertSentCount(2);
 });
 
 it('delegeert generatie naar AiImageGenerator', function () {

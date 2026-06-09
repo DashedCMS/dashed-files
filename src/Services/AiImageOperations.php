@@ -110,6 +110,10 @@ class AiImageOperations
         ], $siteId);
 
         if (! $cutout) {
+            Log::warning('AiImageOperations: product photo aborted, background removal step failed', [
+                'sourceUrl' => $sourceUrl,
+            ]);
+
             return null;
         }
 
