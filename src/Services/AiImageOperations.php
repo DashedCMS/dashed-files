@@ -77,6 +77,15 @@ class AiImageOperations
         return $this->import($url, 'ai-edited');
     }
 
+    public function upscale(string $sourceUrl, ?string $siteId = null): ?int
+    {
+        $url = $this->callFal('https://fal.run/fal-ai/clarity-upscaler', [
+            'image_url' => $sourceUrl,
+        ], $siteId);
+
+        return $this->import($url, 'ai-edited');
+    }
+
     public static function isConfigured(?string $siteId = null): bool
     {
         try {
