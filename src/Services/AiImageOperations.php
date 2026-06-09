@@ -73,6 +73,28 @@ class AiImageOperations
         return Customsetting::get('fal_api_key', $siteId);
     }
 
+    /**
+     * Zet een media-id om naar een publieke URL voor het origineel.
+     */
+    public function sourceUrl(?int $mediaId): ?string
+    {
+        if (! $mediaId) {
+            return null;
+        }
+
+        $resolved = mediaHelper()->getSingleMedia($mediaId, 'original');
+
+        if (is_string($resolved) && $resolved !== '') {
+            return $resolved;
+        }
+
+        if (is_object($resolved) && isset($resolved->url)) {
+            return $resolved->url;
+        }
+
+        return null;
+    }
+
     public function removeBackground(string $sourceUrl, ?string $siteId = null): ?int
     {
         $url = $this->callFal('https://fal.run/fal-ai/birefnet', [
