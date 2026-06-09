@@ -1,6 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
+use Dashed\DashedFiles\Models\AiImageOperation;
 use Dashed\DashedFiles\Services\AiImageGenerator;
 use Dashed\DashedFiles\Services\AiImageOperations;
 use Mockery as m;
@@ -115,4 +118,19 @@ it('delegeert generatie naar AiImageGenerator', function () {
     $service = new AiImageOperations();
 
     expect($service->generate('een rode schoen'))->toBe(2002);
+});
+
+it('maakt records aan en dispatcht een job per media-item bij bulk', function () {
+    Bus::fake();
+
+    $service = new AiImageOperations();
+    $batchId = $service->dispatchBulk(
+        type: AiImageOperation::TYPE_UPSCALE,
+        sourceMediaIds: [10, 11, 12],
+    );
+
+    expect(AiImageOperation::where('batch_id', $batchId)->count())->toBe(3);
+    expect(AiImageOperation::where('batch_id', $batchId)->where('type', 'upscale')->count())->toBe(3);
+
+    Bus::assertDispatchedTimes(ProcessAiImageOperation::class, 3);
 });

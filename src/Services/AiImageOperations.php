@@ -2,9 +2,12 @@
 
 namespace Dashed\DashedFiles\Services;
 
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Dashed\DashedCore\Models\Customsetting;
+use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
+use Dashed\DashedFiles\Models\AiImageOperation;
 
 class AiImageOperations
 {
@@ -162,6 +165,49 @@ class AiImageOperations
             folder: 'ai-generated',
             siteId: $siteId,
         );
+    }
+
+    /**
+     * Maak één operatie aan en dispatch de job. Geeft het AiImageOperation-id terug.
+     */
+    public function dispatchOne(
+        string $type,
+        ?int $sourceMediaId = null,
+        array $params = [],
+        ?string $batchId = null,
+        ?string $siteId = null,
+    ): int {
+        $op = AiImageOperation::create([
+            'type' => $type,
+            'status' => AiImageOperation::STATUS_QUEUED,
+            'source_media_id' => $sourceMediaId,
+            'params' => $params,
+            'batch_id' => $batchId,
+            'site_id' => $siteId,
+        ]);
+
+        ProcessAiImageOperation::dispatch($op->id);
+
+        return $op->id;
+    }
+
+    /**
+     * Dispatch dezelfde bewerking voor meerdere media-items onder één batch_id.
+     * Geeft het batch_id terug voor voortgangsweergave.
+     */
+    public function dispatchBulk(
+        string $type,
+        array $sourceMediaIds,
+        array $params = [],
+        ?string $siteId = null,
+    ): string {
+        $batchId = (string) Str::uuid();
+
+        foreach ($sourceMediaIds as $mediaId) {
+            $this->dispatchOne($type, (int) $mediaId, $params, $batchId, $siteId);
+        }
+
+        return $batchId;
     }
 
     public static function isConfigured(?string $siteId = null): bool
