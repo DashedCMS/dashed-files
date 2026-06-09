@@ -2,6 +2,7 @@
 
 namespace Dashed\DashedFiles\Jobs;
 
+use Throwable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -19,7 +20,7 @@ class ProcessAiImageOperation implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $timeout = 300;
+    public int $timeout = 600;
 
     public array $backoff = [10, 30, 60];
 
@@ -31,33 +32,34 @@ class ProcessAiImageOperation implements ShouldQueue
     {
         $op = AiImageOperation::find($this->operationId);
 
-        if (! $op || $op->isFinished()) {
+        if (! $op || $op->status === AiImageOperation::STATUS_DONE) {
             return;
         }
 
         $op->update(['status' => AiImageOperation::STATUS_PROCESSING]);
 
-        try {
-            $service = app(AiImageOperations::class);
-            $resultId = $this->run($op, $service);
+        $resultId = $this->run($op, app(AiImageOperations::class));
 
-            if (! $resultId) {
-                $op->update([
-                    'status' => AiImageOperation::STATUS_FAILED,
-                    'error' => 'De bewerking leverde geen resultaat op.',
-                ]);
+        if (! $resultId) {
+            // Gooi zodat Laravel het opnieuw probeert met backoff; failed() zet de
+            // definitieve FAILED-status na de laatste poging.
+            throw new \RuntimeException('De bewerking leverde geen resultaat op.');
+        }
 
-                return;
-            }
+        $op->update([
+            'status' => AiImageOperation::STATUS_DONE,
+            'result_media_id' => $resultId,
+        ]);
+    }
 
-            $op->update([
-                'status' => AiImageOperation::STATUS_DONE,
-                'result_media_id' => $resultId,
-            ]);
-        } catch (\Throwable $e) {
+    public function failed(Throwable $exception): void
+    {
+        $op = AiImageOperation::find($this->operationId);
+
+        if ($op && $op->status !== AiImageOperation::STATUS_DONE) {
             $op->update([
                 'status' => AiImageOperation::STATUS_FAILED,
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ]);
         }
     }
