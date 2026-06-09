@@ -123,6 +123,21 @@ class AiImageOperations
         return $this->import($studio, 'ai-edited');
     }
 
+    public function generate(
+        string $prompt,
+        string $ratio = '1:1',
+        ?string $referenceImageUrl = null,
+        ?string $siteId = null,
+    ): ?int {
+        return app(AiImageGenerator::class)->generate(
+            prompt: $prompt,
+            ratio: $ratio,
+            referenceImageUrl: $referenceImageUrl,
+            folder: 'ai-generated',
+            siteId: $siteId,
+        );
+    }
+
     public static function isConfigured(?string $siteId = null): bool
     {
         try {

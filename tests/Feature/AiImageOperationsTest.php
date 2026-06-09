@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Http;
+use Dashed\DashedFiles\Services\AiImageGenerator;
 use Dashed\DashedFiles\Services\AiImageOperations;
 use Mockery as m;
 
@@ -94,4 +95,17 @@ it('maakt een product-foto via een bg-removal plus studio-edit pipeline', functi
         return str_contains($request->url(), 'nano-banana/edit')
             && $request['image_urls'] === ['https://cdn.test/cutout.png'];
     });
+});
+
+it('delegeert generatie naar AiImageGenerator', function () {
+    $generator = m::mock(AiImageGenerator::class);
+    $generator->shouldReceive('generate')
+        ->once()
+        ->with('een rode schoen', '1:1', null, 'ai-generated', null)
+        ->andReturn(2002);
+    app()->instance(AiImageGenerator::class, $generator);
+
+    $service = new AiImageOperations();
+
+    expect($service->generate('een rode schoen'))->toBe(2002);
 });
