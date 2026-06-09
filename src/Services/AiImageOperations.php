@@ -68,6 +68,15 @@ class AiImageOperations
         return Customsetting::get('fal_api_key', $siteId);
     }
 
+    public function removeBackground(string $sourceUrl, ?string $siteId = null): ?int
+    {
+        $url = $this->callFal('https://fal.run/fal-ai/birefnet', [
+            'image_url' => $sourceUrl,
+        ], $siteId);
+
+        return $this->import($url, 'ai-edited');
+    }
+
     public static function isConfigured(?string $siteId = null): bool
     {
         try {
