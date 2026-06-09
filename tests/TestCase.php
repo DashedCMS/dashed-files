@@ -18,18 +18,14 @@ class TestCase extends Orchestra
 
     protected function getPackageProviders($app)
     {
-        return [
-            DashedFilesServiceProvider::class,
-        ];
+        return [];
     }
 
     public function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
 
-        /*
-        $migration = include __DIR__.'/../database/migrations/create_dashed-files_table.php.stub';
+        $migration = include __DIR__.'/../database/migrations/2026_06_09_100000_create_ai_image_operations_table.php';
         $migration->up();
-        */
     }
 }
