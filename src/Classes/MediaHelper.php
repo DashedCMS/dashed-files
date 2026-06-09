@@ -11,10 +11,12 @@ use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Dashed\DashedFiles\Services\AiImageGenerator;
+use Dashed\DashedFiles\Services\AiImageOperations;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Filament\Actions\AiGenerateImageAction;
+use Dashed\DashedFiles\Filament\Actions\AiMediaLibraryActions;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
@@ -140,6 +142,16 @@ class MediaHelper extends Command
                             ->width(800);
                     }
                 });
+
+                if (AiImageOperations::isConfigured()) {
+                    $driver
+                        ->pushFileActions(AiMediaLibraryActions::all())
+                        ->pushFileInfoActions(AiMediaLibraryActions::all())
+                        ->pushBulkActions(AiMediaLibraryActions::bulk())
+                        ->pushEmptyStateActions([
+                            AiMediaLibraryActions::generate(),
+                        ]);
+                }
             })
             ->slug('media-browser');
     }
