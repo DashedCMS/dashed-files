@@ -1,12 +1,12 @@
 <?php
 
+use Mockery as m;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
-use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 use Dashed\DashedFiles\Models\AiImageOperation;
 use Dashed\DashedFiles\Services\AiImageGenerator;
 use Dashed\DashedFiles\Services\AiImageOperations;
-use Mockery as m;
+use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 
 it('rapporteert isConfigured als false zonder fal-sleutel', function () {
     // Customsetting::get geeft null terug zonder ingestelde sleutel/tabel,

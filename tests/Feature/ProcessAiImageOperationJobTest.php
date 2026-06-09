@@ -2,8 +2,8 @@
 
 use Mockery as m;
 use Dashed\DashedFiles\Models\AiImageOperation;
-use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 use Dashed\DashedFiles\Services\AiImageOperations;
+use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 
 it('verwerkt een upscale-operatie en zet die op done', function () {
     $service = m::mock(AiImageOperations::class);
