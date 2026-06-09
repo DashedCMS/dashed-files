@@ -86,6 +86,18 @@ class AiImageOperations
         return $this->import($url, 'ai-edited');
     }
 
+    public function edit(string $sourceUrl, string $prompt, ?string $siteId = null): ?int
+    {
+        $url = $this->callFal('https://fal.run/fal-ai/nano-banana/edit', [
+            'prompt' => $prompt,
+            'image_urls' => [$sourceUrl],
+            'num_images' => 1,
+            'output_format' => 'png',
+        ], $siteId);
+
+        return $this->import($url, 'ai-edited');
+    }
+
     public static function isConfigured(?string $siteId = null): bool
     {
         try {
