@@ -73,3 +73,25 @@ it('retoucheert via nano-banana/edit met de meegegeven prompt', function () {
             && $request['image_urls'] === ['https://cdn.test/source.jpg'];
     });
 });
+
+it('maakt een product-foto via een bg-removal plus studio-edit pipeline', function () {
+    Http::fake([
+        'fal.run/fal-ai/birefnet' => Http::response(['image' => ['url' => 'https://cdn.test/cutout.png']], 200),
+        'fal.run/fal-ai/nano-banana/edit' => Http::response(['images' => [['url' => 'https://cdn.test/studio.png']]], 200),
+    ]);
+
+    $service = m::mock(AiImageOperations::class)->makePartial();
+    $service->shouldAllowMockingProtectedMethods();
+    $service->shouldReceive('apiKey')->andReturn('test-key');
+    $service->shouldReceive('import')
+        ->once()
+        ->with('https://cdn.test/studio.png', 'ai-edited')
+        ->andReturn(1001);
+
+    expect($service->productPhoto('https://cdn.test/source.jpg'))->toBe(1001);
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), 'nano-banana/edit')
+            && $request['image_urls'] === ['https://cdn.test/cutout.png'];
+    });
+});
