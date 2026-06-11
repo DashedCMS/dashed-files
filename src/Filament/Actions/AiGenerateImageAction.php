@@ -150,7 +150,7 @@ class AiGenerateImageAction
                 ->live()
                 ->getSearchResultsUsing(function (string $search, callable $get) {
                     $class = $get('reference_model_type');
-                    if (! $class || ! class_exists($class)) {
+                    if (! $class || ! array_key_exists($class, self::routeModelOptions())) {
                         return [];
                     }
                     $model = new $class();
@@ -170,7 +170,7 @@ class AiGenerateImageAction
                 })
                 ->getOptionLabelUsing(function ($value, callable $get) {
                     $class = $get('reference_model_type');
-                    if (! $value || ! $class || ! class_exists($class)) {
+                    if (! $value || ! $class || ! array_key_exists($class, self::routeModelOptions())) {
                         return null;
                     }
                     $item = $class::find($value);
@@ -185,7 +185,7 @@ class AiGenerateImageAction
                 ->options(function (callable $get) {
                     $class = $get('reference_model_type');
                     $id = $get('reference_model_id');
-                    if (! $class || ! $id || ! class_exists($class)) {
+                    if (! $class || ! $id || ! array_key_exists($class, self::routeModelOptions())) {
                         return [];
                     }
                     $subject = $class::find($id);
