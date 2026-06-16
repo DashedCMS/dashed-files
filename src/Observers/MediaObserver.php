@@ -5,10 +5,53 @@ namespace Dashed\DashedFiles\Observers;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Dashed\DashedFiles\Exceptions\DisallowedFileTypeException;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 
 class MediaObserver
 {
+    /**
+     * Extensions that must never be stored, because the webserver could execute
+     * them (PHP shells, CGI/templating scripts, native executables) or because
+     * they reconfigure the webserver (.htaccess, .user.ini). Override per-project
+     * via the `dashed-files.blocked_upload_extensions` config key.
+     */
+    public const BLOCKED_UPLOAD_EXTENSIONS = [
+        // PHP in all its guises
+        'php', 'php2', 'php3', 'php4', 'php5', 'php6', 'php7', 'php8',
+        'phtml', 'pht', 'phps', 'phar', 'phtm', 'inc',
+        // Other server-side / templating engines
+        'asp', 'aspx', 'jsp', 'jspx', 'cgi', 'pl', 'py', 'rb',
+        'sh', 'bash', 'shtml', 'shtm', 'stm',
+        // Native executables / scripts
+        'exe', 'dll', 'com', 'bat', 'cmd', 'msi', 'scr', 'vbs',
+        'ws', 'wsf', 'jar',
+        // Webserver / interpreter configuration
+        'htaccess', 'htpasswd', 'ini',
+    ];
+
+    /**
+     * Security guard. Runs for EVERY media upload (every Filament picker funnels
+     * through the Spatie Media model), so a leaked/compromised admin account can
+     * never store a file the webserver would execute. Defense-in-depth alongside
+     * the webserver rule that blocks PHP execution under the public storage path.
+     *
+     * Checks every dot-separated component, so `shell.php.jpg` is blocked too.
+     */
+    public function creating(Media $media): void
+    {
+        $blocked = config('dashed-files.blocked_upload_extensions', self::BLOCKED_UPLOAD_EXTENSIONS);
+
+        $parts = explode('.', strtolower((string) ($media->file_name ?? '')));
+        array_shift($parts); // drop the base name, keep every extension component
+
+        foreach ($parts as $part) {
+            if (in_array(trim($part), $blocked, true)) {
+                throw new DisallowedFileTypeException((string) ($media->file_name ?? ''), $part);
+            }
+        }
+    }
+
     public function created(Media $media)
     {
         $this->storeOriginalDimensions($media);
