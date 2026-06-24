@@ -46,7 +46,7 @@ class MissingAltTextCheck implements ContentQualityCheck
 
     protected function query()
     {
-        return MediaLibraryItem::withoutGlobalScopes()
+        return MediaLibraryItem::query()
             ->where(function ($q) {
                 $q->whereNull('alt_text')->orWhere('alt_text', '');
             });
