@@ -25,7 +25,9 @@ class DashedFilesServiceProvider extends PackageServiceProvider
             'medialibrary-config',
         ]);
 
-        cms()->registerContentQualityCheck(new \Dashed\DashedFiles\ContentQuality\MissingAltTextCheck());
+        if (method_exists(cms(), 'registerContentQualityCheck')) {
+            cms()->registerContentQualityCheck(new \Dashed\DashedFiles\ContentQuality\MissingAltTextCheck());
+        }
 
         cms()->registerSettingsDocs(
             page: \Dashed\DashedFiles\Filament\Pages\FilesPage::class,
