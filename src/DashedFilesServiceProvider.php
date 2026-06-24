@@ -25,6 +25,8 @@ class DashedFilesServiceProvider extends PackageServiceProvider
             'medialibrary-config',
         ]);
 
+        cms()->registerContentQualityCheck(new \Dashed\DashedFiles\ContentQuality\MissingAltTextCheck());
+
         cms()->registerSettingsDocs(
             page: \Dashed\DashedFiles\Filament\Pages\FilesPage::class,
             title: 'Bestanden',
