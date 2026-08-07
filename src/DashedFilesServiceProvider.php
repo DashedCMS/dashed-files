@@ -19,6 +19,10 @@ class DashedFilesServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'dashed-files';
 
+    // Bewust bootingPackage() en niet configurePackage(): mediaHelper()->plugin()
+    // roept hieronder __('Content') aan voor de navigationGroup, en configurePackage()
+    // draait in de register()-fase, vóórdat Laravel's vertaler bestaat. Verplaats dit
+    // niet terug naar configurePackage(), dat crasht de hele boot (zie task-5-report.md).
     public function bootingPackage()
     {
         cms()->builder('publishOnUpdate', [
