@@ -68,7 +68,7 @@ class MediaHelper extends Command
     public function plugin()
     {
         return FilamentMediaLibrary::make()
-            ->navigationGroup('Content')
+            ->navigationGroup(__('Content'))
             ->navigationIcon('heroicon-o-camera')
             ->activeNavigationIcon('heroicon-s-camera')
             ->acceptPdf()

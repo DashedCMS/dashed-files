@@ -35,8 +35,8 @@ class AiMediaLibraryActions
         return self::baseImageAction('ai_retouch', 'AI: retoucheren', 'heroicon-o-pencil-square')
             ->schema([
                 Textarea::make('prompt')
-                    ->label('Wat moet er gebeuren?')
-                    ->placeholder('Bijv. verwijder het kabeltje rechtsonder')
+                    ->label(__('Wat moet er gebeuren?'))
+                    ->placeholder(__('Bijv. verwijder het kabeltje rechtsonder'))
                     ->required()
                     ->rows(3),
             ])
@@ -79,18 +79,18 @@ class AiMediaLibraryActions
     public static function generate(): Action
     {
         return Action::make('ai_generate')
-            ->label('Genereer met AI')
+            ->label(__('Genereer met AI'))
             ->icon('heroicon-o-sparkles')
             ->visible(fn () => AiImageOperations::isConfigured())
             ->schema([
-                Textarea::make('prompt')->label('Prompt')->required()->rows(4),
+                Textarea::make('prompt')->label(__('Prompt'))->required()->rows(4),
                 Select::make('ratio')
-                    ->label('Beeldverhouding')
+                    ->label(__('Beeldverhouding'))
                     ->options([
-                        '1:1' => '1:1 (vierkant)',
-                        '4:5' => '4:5 (portret)',
-                        '9:16' => '9:16 (stories)',
-                        '16:9' => '16:9 (landschap)',
+                        '1:1' => __('1:1 (vierkant)'),
+                        '4:5' => __('4:5 (portret)'),
+                        '9:16' => __('9:16 (stories)'),
+                        '16:9' => __('16:9 (landschap)'),
                     ])
                     ->default('1:1')
                     ->required(),
@@ -102,8 +102,8 @@ class AiMediaLibraryActions
                 );
 
                 Notification::make()
-                    ->title('Beeld wordt gegenereerd')
-                    ->body('Het resultaat verschijnt zo in de map ai-generated.')
+                    ->title(__('Beeld wordt gegenereerd'))
+                    ->body(__('Het resultaat verschijnt zo in de map ai-generated.'))
                     ->success()
                     ->send();
             });
@@ -146,7 +146,7 @@ class AiMediaLibraryActions
                     ->all();
 
                 if (! $ids) {
-                    Notification::make()->title('Geen afbeeldingen geselecteerd')->warning()->send();
+                    Notification::make()->title(__('Geen afbeeldingen geselecteerd'))->warning()->send();
 
                     return;
                 }
@@ -154,8 +154,8 @@ class AiMediaLibraryActions
                 app(AiImageOperations::class)->dispatchBulk(type: $type, sourceMediaIds: $ids);
 
                 Notification::make()
-                    ->title(count($ids).' afbeelding(en) in de wachtrij')
-                    ->body('De bewerkte versies verschijnen zo in de bibliotheek.')
+                    ->title(__(':aantal afbeelding(en) in de wachtrij', ['aantal' => count($ids)]))
+                    ->body(__('De bewerkte versies verschijnen zo in de bibliotheek.'))
                     ->success()
                     ->send();
             });
@@ -174,8 +174,8 @@ class AiMediaLibraryActions
     protected static function notifyQueued(): void
     {
         Notification::make()
-            ->title('Bezig met verwerken')
-            ->body('Het bewerkte beeld verschijnt zo in de bibliotheek.')
+            ->title(__('Bezig met verwerken'))
+            ->body(__('Het bewerkte beeld verschijnt zo in de bibliotheek.'))
             ->success()
             ->send();
     }

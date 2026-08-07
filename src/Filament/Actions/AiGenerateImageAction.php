@@ -26,19 +26,19 @@ class AiGenerateImageAction
     public static function make(): Action
     {
         return Action::make('aiGenerateImage')
-            ->label('Genereer met AI')
+            ->label(__('Genereer met AI'))
             ->icon('heroicon-o-sparkles')
             ->color('info')
-            ->modalHeading('Afbeelding genereren met AI')
-            ->modalDescription('Beschrijf wat je wilt zien. Geef optioneel een referentieafbeelding mee voor 1-op-1 productbehoud (nano-banana/edit).')
+            ->modalHeading(__('Afbeelding genereren met AI'))
+            ->modalDescription(__('Beschrijf wat je wilt zien. Geef optioneel een referentieafbeelding mee voor 1-op-1 productbehoud (nano-banana/edit).'))
             ->modalWidth('2xl')
-            ->modalSubmitActionLabel('Genereer')
+            ->modalSubmitActionLabel(__('Genereer'))
             ->schema(self::buildSchema())
             ->action(function (array $data, $component) {
                 $prompt = trim((string) ($data['prompt'] ?? ''));
                 if (! $prompt) {
                     Notification::make()
-                        ->title('Geen prompt opgegeven')
+                        ->title(__('Geen prompt opgegeven'))
                         ->danger()
                         ->send();
 
@@ -56,8 +56,8 @@ class AiGenerateImageAction
 
                 if (! $mediaId) {
                     Notification::make()
-                        ->title('Genereren mislukt')
-                        ->body('Check de logs of je fal.ai sleutel. Probeer het nog eens of pas de prompt aan.')
+                        ->title(__('Genereren mislukt'))
+                        ->body(__('Check de logs of je fal.ai sleutel. Probeer het nog eens of pas de prompt aan.'))
                         ->danger()
                         ->send();
 
@@ -74,8 +74,8 @@ class AiGenerateImageAction
                 }
 
                 Notification::make()
-                    ->title('Afbeelding gegenereerd')
-                    ->body('Het resultaat is opgeslagen in de media library en gekoppeld aan dit veld.')
+                    ->title(__('Afbeelding gegenereerd'))
+                    ->body(__('Het resultaat is opgeslagen in de media library en gekoppeld aan dit veld.'))
                     ->success()
                     ->send();
             });
@@ -88,44 +88,44 @@ class AiGenerateImageAction
     {
         return [
             Textarea::make('prompt')
-                ->label('Prompt')
-                ->placeholder('Bijv. Een minimalistische productfoto van een leren tas op een marmeren tafel, zacht daglicht, zachte schaduwen, beige achtergrond.')
+                ->label(__('Prompt'))
+                ->placeholder(__('Bijv. Een minimalistische productfoto van een leren tas op een marmeren tafel, zacht daglicht, zachte schaduwen, beige achtergrond.'))
                 ->rows(4)
                 ->required(),
 
             Select::make('ratio')
-                ->label('Beeldverhouding')
+                ->label(__('Beeldverhouding'))
                 ->options([
-                    '1:1' => '1:1 (vierkant)',
-                    '4:5' => '4:5 (portret, Instagram feed)',
-                    '9:16' => '9:16 (stories/reels)',
-                    '2:3' => '2:3 (portret)',
-                    '3:4' => '3:4 (portret)',
-                    '4:3' => '4:3 (landschap)',
-                    '16:9' => '16:9 (landschap)',
+                    '1:1' => __('1:1 (vierkant)'),
+                    '4:5' => __('4:5 (portret, Instagram feed)'),
+                    '9:16' => __('9:16 (stories/reels)'),
+                    '2:3' => __('2:3 (portret)'),
+                    '3:4' => __('3:4 (portret)'),
+                    '4:3' => __('4:3 (landschap)'),
+                    '16:9' => __('16:9 (landschap)'),
                 ])
                 ->default('1:1')
                 ->required(),
 
             Radio::make('reference_source')
-                ->label('Referentieafbeelding (optioneel)')
-                ->helperText('Met referentie wordt het product 1-op-1 behouden via nano-banana/edit.')
+                ->label(__('Referentieafbeelding (optioneel)'))
+                ->helperText(__('Met referentie wordt het product 1-op-1 behouden via nano-banana/edit.'))
                 ->options([
-                    'none' => 'Geen - tekst-naar-beeld (flux/dev)',
-                    'url' => 'URL invoeren',
-                    'upload' => 'Uploaden',
-                    'model' => 'Kies uit onderwerp in de CMS',
+                    'none' => __('Geen - tekst-naar-beeld (flux/dev)'),
+                    'url' => __('URL invoeren'),
+                    'upload' => __('Uploaden'),
+                    'model' => __('Kies uit onderwerp in de CMS'),
                 ])
                 ->default('none')
                 ->live(),
 
             TextInput::make('reference_url')
-                ->label('Referentieafbeelding URL')
+                ->label(__('Referentieafbeelding URL'))
                 ->url()
                 ->visible(fn (callable $get) => $get('reference_source') === 'url'),
 
             FileUpload::make('reference_upload')
-                ->label('Upload referentieafbeelding')
+                ->label(__('Upload referentieafbeelding'))
                 ->image()
                 ->disk('public')
                 ->directory('ai-reference-temp')
@@ -133,7 +133,7 @@ class AiGenerateImageAction
                 ->visible(fn (callable $get) => $get('reference_source') === 'upload'),
 
             Select::make('reference_model_type')
-                ->label('Onderwerp type')
+                ->label(__('Onderwerp type'))
                 ->options(self::routeModelOptions())
                 ->nullable()
                 ->live()
@@ -144,7 +144,7 @@ class AiGenerateImageAction
                 ->visible(fn (callable $get) => $get('reference_source') === 'model'),
 
             Select::make('reference_model_id')
-                ->label('Specifiek onderwerp')
+                ->label(__('Specifiek onderwerp'))
                 ->searchable()
                 ->nullable()
                 ->live()
@@ -181,7 +181,7 @@ class AiGenerateImageAction
                 ->visible(fn (callable $get) => $get('reference_source') === 'model' && (bool) $get('reference_model_type')),
 
             Select::make('reference_model_image')
-                ->label('Kies afbeelding van onderwerp')
+                ->label(__('Kies afbeelding van onderwerp'))
                 ->options(function (callable $get) {
                     $class = $get('reference_model_type');
                     $id = $get('reference_model_id');
@@ -210,7 +210,7 @@ class AiGenerateImageAction
                 ->visible(fn (callable $get) => $get('reference_source') === 'model' && (bool) $get('reference_model_id')),
 
             Placeholder::make('reference_preview')
-                ->label('Referentie voorbeeld')
+                ->label(__('Referentie voorbeeld'))
                 ->content(function (callable $get) {
                     $url = self::resolveReferenceUrl([
                         'reference_source' => $get('reference_source'),
