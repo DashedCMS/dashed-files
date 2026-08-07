@@ -25,6 +25,12 @@ class DashedFilesServiceProvider extends PackageServiceProvider
             'medialibrary-config',
         ]);
 
+        cms()->builder('plugins', [
+            new DashedFilesPlugin(),
+            mediaHelper()->plugin(),
+//            FilamentUpload::make(),
+        ]);
+
         if (method_exists(cms(), 'registerContentQualityCheck')) {
             cms()->registerContentQualityCheck(new \Dashed\DashedFiles\ContentQuality\MissingAltTextCheck());
         }
@@ -96,11 +102,5 @@ MARKDOWN,
             ->hasConfigFile([
                 'media-library',
             ]);
-
-        cms()->builder('plugins', [
-            new DashedFilesPlugin(),
-            mediaHelper()->plugin(),
-//            FilamentUpload::make(),
-        ]);
     }
 }
