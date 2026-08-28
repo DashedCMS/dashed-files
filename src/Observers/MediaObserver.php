@@ -5,8 +5,8 @@ namespace Dashed\DashedFiles\Observers;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Dashed\DashedFiles\Exceptions\DisallowedFileTypeException;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use Dashed\DashedFiles\Exceptions\DisallowedFileTypeException;
 
 class MediaObserver
 {

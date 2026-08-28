@@ -2,8 +2,8 @@
 
 use Illuminate\Support\Facades\Bus;
 use Dashed\DashedFiles\Models\AiImageOperation;
-use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 use Dashed\DashedFiles\Services\AiImageOperations;
+use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 
 it('slaat context op bij dispatchOne', function () {
     Bus::fake();

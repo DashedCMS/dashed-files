@@ -286,9 +286,12 @@ class MediaHelper extends Command
         // 1) JSON uit kolom conversion_urls halen
         $all = $this->getConversionData($item);
 
-        // 2) Staat deze conversion er al in? → direct object teruggeven
+        // 2) Staat deze conversion er al in? → direct object teruggeven.
+        //    altText komt bewust niet uit conversion_urls maar altijd vers van het
+        //    item: die JSON wordt eenmalig weggeschreven, dus een later aangepaste
+        //    alt-tekst zou er anders nooit meer doorheen komen.
         if (isset($all[$conversionName])) {
-            return (object) $all[$conversionName];
+            return (object) array_merge($all[$conversionName], ['altText' => $item->alt_text]);
         }
 
         // 3) Zware pad: Spatie Media ophalen + URL genereren
@@ -349,7 +352,7 @@ class MediaHelper extends Command
 
         $this->saveConversionData($item, $all);
 
-        return (object) $all[$conversionName];
+        return (object) array_merge($all[$conversionName], ['altText' => $item->alt_text]);
     }
 
     public function getMultipleMedia(array $mediaIds, string $conversion = 'medium'): ?Collection

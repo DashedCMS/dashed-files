@@ -3,8 +3,8 @@
 use Mockery as m;
 use Illuminate\Support\Facades\Event;
 use Dashed\DashedFiles\Models\AiImageOperation;
-use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 use Dashed\DashedFiles\Services\AiImageOperations;
+use Dashed\DashedFiles\Jobs\ProcessAiImageOperation;
 use Dashed\DashedFiles\Events\AiImageOperationCompleted;
 
 it('vuurt AiImageOperationCompleted bij een geslaagde operatie', function () {
