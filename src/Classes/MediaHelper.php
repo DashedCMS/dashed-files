@@ -46,6 +46,13 @@ class MediaHelper extends Command
             ->downloadable()
             ->reorderable();
 
+        // Elk veld een eigen driver (die houdt per veld instellingen bij), maar
+        // gevonden bestanden gedeeld over het hele verzoek. Zonder dit vroeg een
+        // grote pagina bij elke opslag dezelfde media tientallen keren op.
+        if (MediaPickerFileCache::isCompatible()) {
+            $mediaPicker->driver(fn (MediaPicker $component) => CachingMediaLibraryItemDriver::forField($component));
+        }
+
         if ($isImage) {
             $mediaPicker->acceptedFileTypes(['image/*']);
         }
@@ -86,7 +93,21 @@ class MediaHelper extends Command
                     });
 
                 $driver->registerConversions(function (MediaLibraryItem $mediaLibraryItem, ?Media $media = null) {
-                    $mediaLibraryItemConversions = json_decode(MediaLibraryItem::find($media->model_id)->conversions ?? '{}', true);
+                    // Spatie roept dit aan op een lege `new MediaLibraryItem`, dus de
+                    // eigen conversies moeten van de rij komen. Dat gebeurde bij elke
+                    // afbeeldings-URL opnieuw; per verzoek één keer per item is genoeg.
+                    if ($mediaLibraryItem->exists && $media && $mediaLibraryItem->getKey() == $media->model_id) {
+                        $conversionsJson = $mediaLibraryItem->conversions;
+                    } elseif ($media && $media->model_id !== null) {
+                        $conversionsJson = MediaPickerFileCache::rememberConversions(
+                            $media->model_id,
+                            fn () => MediaLibraryItem::find($media->model_id)?->conversions,
+                        );
+                    } else {
+                        $conversionsJson = MediaLibraryItem::find($media?->model_id)?->conversions;
+                    }
+
+                    $mediaLibraryItemConversions = json_decode($conversionsJson ?? '{}', true);
 
                     foreach ($mediaLibraryItemConversions as $conversion) {
                         if (is_array($conversion)) {

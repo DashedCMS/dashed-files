@@ -2,17 +2,21 @@
 
 namespace Dashed\DashedFiles;
 
+use Illuminate\Support\Facades\Queue;
 use Spatie\LaravelPackageTools\Package;
 use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\Upload\FilamentUpload;
 use Dashed\DashedFiles\Observers\MediaObserver;
 use Dashed\DashedFiles\Commands\ClearTempImages;
+use Dashed\DashedFiles\Classes\MediaPickerFileCache;
 use Dashed\DashedFiles\Commands\CreateConversionUrls;
 use Dashed\DashedFiles\Commands\ClearMediaConversions;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Commands\MigrateImagesToNewPath;
 use Dashed\DashedFiles\Commands\MigrateImagesInDatabase;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use Dashed\DashedFiles\Commands\MigrateFilesToSpatieMediaLibrary;
 
 class DashedFilesServiceProvider extends PackageServiceProvider
@@ -77,6 +81,20 @@ MARKDOWN,
         $this->app->singleton(\Dashed\DashedFiles\Classes\MediaHelper::class);
 
         Media::observe(MediaObserver::class);
+
+        // De gedeelde cache van de MediaPicker is statisch: leeg hem aan het
+        // eind van elk verzoek, voor en na elke wachtrijtaak (na alleen vuurt
+        // niet bij een mislukte taak), en zodra een bestand, map
+        // of mediarij verandert, zodat een hernoemd of vervangen bestand in
+        // hetzelfde verzoek niet met zijn oude gegevens terugkomt.
+        $this->app->terminating(fn () => MediaPickerFileCache::flush());
+        Queue::before(fn () => MediaPickerFileCache::flush());
+        Queue::after(fn () => MediaPickerFileCache::flush());
+
+        foreach ([MediaLibraryItem::class, MediaLibraryFolder::class, Media::class] as $model) {
+            $model::saved(fn () => MediaPickerFileCache::flush());
+            $model::deleted(fn () => MediaPickerFileCache::flush());
+        }
 
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
