@@ -111,6 +111,7 @@ MARKDOWN,
 
         $package
             ->name('dashed-files')
+            ->hasTranslations()
             ->hasViews()
             ->hasCommands([
                 CreateConversionUrls::class,
