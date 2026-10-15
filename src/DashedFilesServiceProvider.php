@@ -2,8 +2,10 @@
 
 namespace Dashed\DashedFiles;
 
+use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Queue;
 use Spatie\LaravelPackageTools\Package;
+use Filament\Support\Facades\FilamentView;
 use Illuminate\Console\Scheduling\Schedule;
 use RalphJSmit\Filament\Upload\FilamentUpload;
 use Dashed\DashedFiles\Observers\MediaObserver;
@@ -79,6 +81,14 @@ MARKDOWN,
     public function packageBooted()
     {
         $this->app->singleton(\Dashed\DashedFiles\Classes\MediaHelper::class);
+
+        // Script en stijl voor slepen-om-te-uploaden op elke MediaPicker
+        // (UploadableMediaPicker). Alleen ingelogd: BODY_END staat ook op de
+        // inlogpagina, en daar staat geen picker.
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn () => auth()->check() ? view('dashed-files::filament.media-picker-upload') : '',
+        );
 
         Media::observe(MediaObserver::class);
 

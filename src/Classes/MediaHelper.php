@@ -20,6 +20,7 @@ use Dashed\DashedFiles\Filament\Actions\AiMediaLibraryActions;
 use Dashed\DashedFiles\Jobs\RegenerateMediaLibraryConversions;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryFolder;
 use RalphJSmit\Filament\MediaLibrary\Drivers\MediaLibraryItemDriver;
+use Dashed\DashedFiles\Filament\Forms\Components\UploadableMediaPicker;
 use RalphJSmit\Filament\MediaLibrary\Filament\Forms\Components\MediaPicker;
 
 class MediaHelper extends Command
@@ -39,7 +40,9 @@ class MediaHelper extends Command
         //            ->label($label)
         //            ->placeholder('Media picker is tijdelijk uitgeschakeld')
         //            ->helperText('Media picker is tijdelijk uitgeschakeld');
-        $mediaPicker = MediaPicker::make($name)
+        // De picker uit de mediabibliotheek, plus slepen-om-te-uploaden en de
+        // knop "Uploaden" naast het label; de modal blijft er voor kiezen.
+        $mediaPicker = UploadableMediaPicker::make($name)
             ->label($label)
             ->required($required)
             ->multiple($multiple)

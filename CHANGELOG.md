@@ -2,6 +2,12 @@
 
 All notable changes to `dashed-files` will be documented in this file.
 
+## v4.6.0 - 2026-10-15
+
+### Added
+- Drag-and-drop upload on every media picker (`UploadableMediaPicker`, used by `mediaHelper()->field()`): drop a file on the field, or use the "Upload" hint action, and it lands in the media library (default folder of the field, else root) and is linked to the field at once. Uploads go through Livewire's component file attachments and `Driver::createFile()`, so uploader, conversions and the upload guard apply. Browser side ships as a render hook (no `filament:assets` needed). Requires dashed-core >= 4.80.0 (for the i18n trait below).
+- Package ships its own `nl.json`/`en.json` and translates the static labels of the files page.
+
 ## Unreleased
 
 ### Security
