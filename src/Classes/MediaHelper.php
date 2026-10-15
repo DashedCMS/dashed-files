@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\TextInput;
+use RalphJSmit\Filament\Explore\Data\FileData;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Dashed\DashedFiles\Services\AiImageGenerator;
 use Dashed\DashedFiles\Services\AiImageOperations;
@@ -180,6 +181,40 @@ class MediaHelper extends Command
             ->slug('media-browser');
     }
 
+    /**
+     * De in-process cache leeft zolang het proces leeft; een testsuite of
+     * een langlopende worker die een ander item onder hetzelfde id ziet,
+     * moet hem kunnen legen.
+     */
+    public static function flushMemoryCache(): void
+    {
+        static::$memoryCache = [];
+    }
+
+    private function decryptPickerKey(string $value): ?string
+    {
+        if (! class_exists(FileData::class)) {
+            return null;
+        }
+
+        $key = rescue(fn () => FileData::decryptKeyHash($value), null, false);
+
+        if (! is_string($key)) {
+            return null;
+        }
+
+        // De mediabibliotheek zet een soortvoorvoegsel voor het id
+        // ("media-library-item:2039"); een map ("media-library-folder:7")
+        // is geen media en telt niet.
+        if (str_contains($key, ':') && ! str_starts_with($key, 'media-library-item:')) {
+            return null;
+        }
+
+        $id = (string) str($key)->afterLast(':');
+
+        return ctype_digit($id) ? $id : null;
+    }
+
     private function getConversionData(MediaLibraryItem $item): array
     {
         try {
@@ -215,13 +250,21 @@ class MediaHelper extends Command
             $mediaId = $mediaId->id;
         }
 
-        // Als het geen integer-string is → we gaan er vanuit dat het al een URL/tekst is
-        if (is_string($mediaId) && ! ctype_digit($mediaId)) {
-            return $mediaId;
-        }
-
         if (is_array($mediaId)) {
             $mediaId = $mediaId[0] ?? null;
+        }
+
+        if (is_string($mediaId) && ! ctype_digit($mediaId)) {
+            // De Livewire-staat van een mediakiezer draagt geen id maar een
+            // versleutelde sleutel (FileData::getKeyHash()); wie de
+            // formulierstaat rechtstreeks rendert, zoals een preview, komt
+            // daarmee hier. Alles wat geen sleutel is, is een geplakte URL
+            // of tekst en gaat ongewijzigd terug.
+            $mediaId = $this->decryptPickerKey($mediaId) ?? $mediaId;
+
+            if (! ctype_digit($mediaId)) {
+                return $mediaId;
+            }
         }
 
         if (! $mediaId) {
