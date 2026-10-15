@@ -92,8 +92,11 @@ class UploadableMediaPicker extends MediaPicker
             ],
         ], JSON_UNESCAPED_UNICODE);
 
+        // Base64, geen kale JSON: Laravels attribute-bag vervangt een " in
+        // een attribuutwaarde door \" in plaats van &quot;, en dat knipt het
+        // attribuut in stukken zodra de browser het leest.
         return [
-            'data-dashed-media-picker' => $config,
+            'data-dashed-media-picker' => base64_encode($config),
             'x-on:dragover.prevent' => 'window.dashedMediaPicker?.dragOver($event, $el)',
             'x-on:dragleave' => 'window.dashedMediaPicker?.dragLeave($event, $el)',
             'x-on:drop.prevent' => 'window.dashedMediaPicker?.drop($event, $el, $wire)',

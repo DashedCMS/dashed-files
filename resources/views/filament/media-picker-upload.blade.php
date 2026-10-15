@@ -25,7 +25,9 @@
     window.dashedMediaPicker = (() => {
         const config = (el) => {
             try {
-                return JSON.parse(el.dataset.dashedMediaPicker || '{}');
+                const bytes = Uint8Array.from(atob(el.dataset.dashedMediaPicker || ''), (c) => c.charCodeAt(0));
+
+                return JSON.parse(new TextDecoder().decode(bytes) || '{}');
             } catch (e) {
                 return {};
             }

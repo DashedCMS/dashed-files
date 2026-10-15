@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-files` will be documented in this file.
 
+## v4.6.2 - 2026-10-15
+
+### Fixed
+- Drop-to-upload did nothing in the browser: the picker's drop-zone config was written as raw JSON into a data attribute, and Laravel's attribute bag writes `"` as `\"` instead of `&quot;`, which cut the attribute into pieces. The config is now base64-encoded and decoded in the script.
+
 ## v4.6.0 - 2026-10-15
 
 ### Added
