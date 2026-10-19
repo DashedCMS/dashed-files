@@ -35,10 +35,12 @@ class AiImageGenerator
             : $this->buildTextToImageRequest($prompt, $ratio);
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => "Key {$apiKey}",
-                'Content-Type' => 'application/json',
-            ])->timeout(180)->post($endpoint, $payload);
+            $response = class_exists(\Dashed\DashedAi\Logging\FalRequest::class)
+                ? \Dashed\DashedAi\Logging\FalRequest::post($endpoint, $payload, $apiKey, ['site_id' => $siteId], 180)
+                : Http::withHeaders([
+                    'Authorization' => "Key {$apiKey}",
+                    'Content-Type' => 'application/json',
+                ])->timeout(180)->post($endpoint, $payload);
         } catch (\Throwable $e) {
             Log::warning('AiImageGenerator: request failed', [
                 'error' => $e->getMessage(),

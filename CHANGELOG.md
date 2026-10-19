@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-files` will be documented in this file.
 
+## v4.7.0 - 2026-10-19
+
+### Changed
+- **Fal.ai-aanroepen in het AI-logboek.** `AiImageGenerator` en `AiImageOperations` gaan via `FalRequest::post()` uit dashed-ai zodra dat pakket aanwezig is (megapixels of afbeeldingen als eenheid, geschatte kosten); zonder dashed-ai blijft de kale HTTP-aanroep.
+
 ## v4.6.2 - 2026-10-15
 
 ### Fixed
