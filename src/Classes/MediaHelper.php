@@ -14,6 +14,7 @@ use Spatie\MediaLibrary\Conversions\Conversion;
 use Dashed\DashedFiles\Services\AiImageGenerator;
 use Dashed\DashedFiles\Services\AiImageOperations;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\InvalidConversion;
 use RalphJSmit\Filament\MediaLibrary\FilamentMediaLibrary;
 use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 use Dashed\DashedFiles\Filament\Actions\AiGenerateImageAction;
@@ -224,6 +225,28 @@ class MediaHelper extends Command
         }
     }
 
+    /**
+     * Zoals Spatie's getAvailableUrl, maar slaat conversies over die wel als
+     * gegenereerd op de media staan maar niet (meer) op het item geregistreerd zijn.
+     * Spatie gooit daar anders een InvalidConversion op.
+     */
+    private function getAvailableUrl(Media $spatie, array $conversionNames): string
+    {
+        foreach ($conversionNames as $conversionName) {
+            if (! $spatie->hasGeneratedConversion($conversionName)) {
+                continue;
+            }
+
+            try {
+                return $spatie->getUrl($conversionName);
+            } catch (InvalidConversion) {
+                continue;
+            }
+        }
+
+        return $spatie->getUrl();
+    }
+
     private function saveConversionData(MediaLibraryItem $item, array $data): void
     {
         $item->conversion_urls = json_encode($data);
@@ -383,6 +406,10 @@ class MediaHelper extends Command
             if (! in_array($conversion, $currentRegistered, true)) {
                 $currentRegistered[] = $conversion;
                 $item->conversions = json_encode($currentRegistered);
+                // Spatie registreert conversies via een lege MediaLibraryItem en leest
+                // ze dus uit de database; zonder opslaan kent hij deze conversie niet.
+                $item->saveQuietly();
+                MediaPickerFileCache::forgetConversions($item->getKey());
             }
         }
 
@@ -404,7 +431,7 @@ class MediaHelper extends Command
                 }
             }
 
-            $url = $spatie->getAvailableUrl([$effective, 'medium', 'original']);
+            $url = $this->getAvailableUrl($spatie, [$effective, 'medium']);
         }
 
         $all[$conversionName] = [

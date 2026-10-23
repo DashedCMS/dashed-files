@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-files` will be documented in this file.
 
+## v4.7.1 - 2026-10-23
+
+### Fixed
+- **`InvalidConversion` ("There is no conversion named `huge`") op de frontend.** Een conversie die `resolveMediaUrl` aan een item toevoegt wordt nu direct opgeslagen, zodat Spatie (die conversies via een lege `MediaLibraryItem` uit de database leest) hem kent. Daarnaast slaat de URL-fallback conversies over die wel als gegenereerd op de media staan maar niet op het item geregistreerd zijn, in plaats van te crashen.
+
 ## v4.7.0 - 2026-10-19
 
 ### Changed

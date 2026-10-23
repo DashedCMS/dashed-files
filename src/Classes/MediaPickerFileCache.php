@@ -62,6 +62,11 @@ class MediaPickerFileCache
         return static::$conversions[$key];
     }
 
+    public static function forgetConversions(int|string $mediaLibraryItemId): void
+    {
+        unset(static::$conversions[(string) $mediaLibraryItemId]);
+    }
+
     public static function flush(): void
     {
         static::$files = [];
