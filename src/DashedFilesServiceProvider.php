@@ -108,8 +108,12 @@ MARKDOWN,
 
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
-            $schedule->command('dashed:clear-temp-images')->hourly()->withoutOverlapping();
-            $schedule->command(CreateConversionUrls::class)->hourly()->withoutOverlapping();
+            $schedule->command('dashed:clear-temp-images')
+                ->hourly()
+                ->withoutOverlapping()
+                ->when(fn () => ClearTempImages::hasWork());
+            // MediaHelper::getSingleMedia() vult een ontbrekende url op aanvraag; dit is alleen voorwerk.
+            $schedule->command(CreateConversionUrls::class)->dailyAt('04:30')->withoutOverlapping();
         });
     }
 

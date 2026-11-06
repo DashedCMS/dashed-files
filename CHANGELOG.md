@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-files` will be documented in this file.
 
+## v4.7.2 - 2026-11-06
+
+### Changed
+- `create-conversion-urls` dagelijks. `clear-temp-images` gebruikt een absoluut pad en wist alleen bestanden ouder dan 6 uur.
+
 ## v4.7.1 - 2026-10-23
 
 ### Fixed
