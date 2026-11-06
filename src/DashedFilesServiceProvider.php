@@ -109,7 +109,7 @@ MARKDOWN,
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
             $schedule->command('dashed:clear-temp-images')
-                ->hourly()
+                ->hourlyAt(class_exists(\Dashed\DashedCore\Classes\ScheduleSpread::class) ? \Dashed\DashedCore\Classes\ScheduleSpread::minute('clear-temp-images') : 0)
                 ->withoutOverlapping()
                 ->when(fn () => ClearTempImages::hasWork());
             // MediaHelper::getSingleMedia() vult een ontbrekende url op aanvraag; dit is alleen voorwerk.

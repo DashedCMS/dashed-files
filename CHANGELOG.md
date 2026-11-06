@@ -2,6 +2,11 @@
 
 All notable changes to `dashed-files` will be documented in this file.
 
+## v4.7.3 - 2026-11-06
+
+### Changed
+- Geplande taken starten op een vast eigen tijdstip per site (`ScheduleSpread`), met de oude tijd op een oudere core.
+
 ## v4.7.2 - 2026-11-06
 
 ### Changed
