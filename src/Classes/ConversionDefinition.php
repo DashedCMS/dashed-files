@@ -51,10 +51,23 @@ final class ConversionDefinition
 
     public const AVIF_SUFFIX = '-avif';
 
+    public const ADMIN_THUMB = 'admin-thumb';
+
     /** De miniatuur van de bibliotheek: 600 bij 600, bijgesneden. */
     public static function thumb(): self
     {
         return new self('thumb', self::MODE_CROP, 600, 600);
+    }
+
+    /**
+     * De miniatuur voor het beheer: 320 bij 320, bijgesneden met het
+     * focuspunt. De tegels, de lijst, het mediaveld en het keuzevenster
+     * tonen hem; `thumb` blijft er voor de thema's en voor een scherm met
+     * dubbele dichtheid.
+     */
+    public static function adminThumb(): self
+    {
+        return new self(self::ADMIN_THUMB, self::MODE_CROP, 320, 320);
     }
 
     public function isCropping(): bool
@@ -119,7 +132,11 @@ final class ConversionDefinition
             return $name;
         }
 
-        $definition = $name === 'thumb' ? self::thumb() : self::fromLegacy($conversion);
+        $definition = match ($name) {
+            'thumb' => self::thumb(),
+            self::ADMIN_THUMB => self::adminThumb(),
+            default => self::fromLegacy($conversion),
+        };
 
         return $definition ? $definition->withFocal($x, $y)->name : $name;
     }

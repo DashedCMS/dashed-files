@@ -20,7 +20,7 @@ use InvalidArgumentException;
 final class MediaPresets
 {
     /** Namen die al een formaat zijn, of dat lijken. */
-    public const RESERVED = ['original', 'huge', 'large', 'medium', 'small', 'tiny', 'thumb', 'responsive'];
+    public const RESERVED = ['original', 'huge', 'large', 'medium', 'small', 'tiny', 'thumb', 'admin-thumb', 'responsive'];
 
     /** @var array<string, MediaPreset> */
     private static array $presets = [];

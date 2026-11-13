@@ -605,7 +605,8 @@
                         </button>
                         <div class="dashed-media-thumb" x-bind:class="{ 'dashed-media-thumb--check': item.thumb && transparent(item) }">
                             <template x-if="item.thumb">
-                                <img x-bind:src="item.thumb" x-bind:alt="item.alt || ''" loading="lazy" decoding="async" draggable="false">
+                                {{-- De beheerminiatuur (320) met de gewone (600) voor een scherm met dubbele dichtheid; expliciete maten tegen verspringen. --}}
+                                <img x-bind:src="item.thumb_small || item.thumb" x-bind:srcset="thumbSrcset(item)" x-bind:width="item.thumb_small ? {{ \Dashed\DashedFiles\Classes\ConversionDefinition::adminThumb()->width }} : null" x-bind:height="item.thumb_small ? {{ \Dashed\DashedFiles\Classes\ConversionDefinition::adminThumb()->height }} : null" x-bind:alt="item.alt || ''" loading="lazy" decoding="async" draggable="false">
                             </template>
                             <template x-if="! item.thumb">
                                 <span style="display: contents">
@@ -618,6 +619,7 @@
                             {{-- Fase 9b: een video of pdf met voorvertoning is aan zijn markering te herkennen; duur of aantal pagina's erbij. --}}
                             <span class="dashed-media-kind" x-show="item.thumb && item.type === 'video'" aria-hidden="true">{!! $icon('heroicon-s-play') !!}</span>
                             <span class="dashed-media-kind dashed-media-kind--pdf" x-show="item.thumb && item.mime === 'application/pdf'" aria-hidden="true">PDF</span>
+                            <span class="dashed-media-kind dashed-media-kind--pdf" x-show="item.thumb && item.animated" aria-hidden="true">GIF</span>
                             <span class="dashed-media-length" x-show="previewBadge(item)" x-text="previewBadge(item)"></span>
                             {{-- Fase 10: een bestand uit een privé-map. De miniatuur komt via een ondertekende route. --}}
                             <span class="dashed-media-lock dashed-media-lock--tile" x-show="item.private" x-bind:title="item.relocating ? L.privateMoving : L.privateItem">{!! $icon('heroicon-s-lock-closed') !!}<span class="dashed-media-sr" x-text="L.privateItem"></span></span>
@@ -699,7 +701,8 @@
                     <template x-if="detail.type !== 'video'">
                         <div class="dashed-media-thumb" x-bind:class="{ 'dashed-media-thumb--check': detail.thumb && transparent(detail) }">
                             <template x-if="detail.thumb">
-                                <img x-bind:src="detail.thumb" x-bind:alt="detail.alt || ''" decoding="async">
+                                {{-- Een geanimeerde gif speelt in het paneel; de tegels tonen alleen het eerste beeld. --}}
+                                <img x-bind:src="detail.animated && detail.url ? detail.url : detail.thumb" x-bind:alt="detail.alt || ''" decoding="async">
                             </template>
                             <template x-if="! detail.thumb">
                                 <span style="display: contents">

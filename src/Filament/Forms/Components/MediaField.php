@@ -941,6 +941,7 @@ class MediaField extends Field
                     'file_name' => (string) $payload['file_name'],
                     'type' => $payload['type'],
                     'thumb' => $payload['thumb'],
+                    'thumb_small' => $payload['thumb_small'] ?? null,
                     'url' => $payload['url'],
                     // De alt-tekst in de taal van het formulier, zonder terugval: wat hier staat is wat er bewerkt wordt.
                     'alt' => $alt = ($multilingual ? ($registry->item($id)?->translations('alt')[$locale] ?? null) : $payload['alt']),

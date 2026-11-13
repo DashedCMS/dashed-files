@@ -53,7 +53,8 @@ class MediaConversions
             $focalX = $focalY = null;
         }
 
-        $definitions = self::libraryDefinitions($json, $focalX, $focalY);
+        // Met de beheerminiatuur: die wordt bij de inname gemaakt, naast `thumb`.
+        $definitions = self::libraryDefinitions($json, $focalX, $focalY, withAdminThumb: true);
 
         foreach ($definitions as $definition) {
             self::add($item, $definition);
@@ -102,13 +103,19 @@ class MediaConversions
      * achtervoegsel daarvan in zijn naam. De registratie bij Spatie en de
      * pomp lezen allebei deze lijst.
      *
+     * De beheerminiatuur (`admin-thumb`) staat er alleen bij met
+     * `$withAdminThumb`: de registratie (inname) en het opruimen willen hem,
+     * de rest (wat een item "hoort te hebben") niet. Zo telt hij niet mee
+     * als "ontbrekend" voor elk bestaand item bij een uitrol.
+     *
      * @return array<string, ConversionDefinition>
      */
-    public static function libraryDefinitions(?string $conversionsJson, ?int $focalX = null, ?int $focalY = null): array
+    public static function libraryDefinitions(?string $conversionsJson, ?int $focalX = null, ?int $focalY = null, bool $withAdminThumb = false): array
     {
         $definitions = [];
+        $first = $withAdminThumb ? [ConversionDefinition::thumb(), ConversionDefinition::adminThumb()] : [ConversionDefinition::thumb()];
 
-        foreach (array_merge([ConversionDefinition::thumb()], array_values(self::definitionsFor($conversionsJson))) as $definition) {
+        foreach (array_merge($first, array_values(self::definitionsFor($conversionsJson))) as $definition) {
             $definition = $definition->withFocal($focalX, $focalY);
             $definitions[$definition->name] ??= $definition;
         }
@@ -120,6 +127,12 @@ class MediaConversions
     public static function thumbName(?int $focalX, ?int $focalY): string
     {
         return ConversionDefinition::thumb()->withFocal($focalX, $focalY)->name;
+    }
+
+    /** De naam van de beheerminiatuur voor dit focuspunt: `admin-thumb` of `admin-thumb-f3070`. */
+    public static function adminThumbName(?int $focalX, ?int $focalY): string
+    {
+        return ConversionDefinition::adminThumb()->withFocal($focalX, $focalY)->name;
     }
 
     public static function isConvertible(string $mime): bool

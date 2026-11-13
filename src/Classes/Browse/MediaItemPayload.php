@@ -6,6 +6,10 @@ use Throwable;
 use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Classes\MediaLibrary;
 use Dashed\DashedFiles\Classes\MediaPickerFileCache;
+use Dashed\DashedFiles\Classes\MediaConversions;
+use Dashed\DashedFiles\Classes\Preview\GifPoster;
+use Dashed\DashedFiles\Classes\ConversionDefinition;
+use Dashed\DashedFiles\Classes\Conversions\ConversionPump;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
@@ -16,6 +20,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 final class MediaItemPayload
 {
     public const SVG = 'image/svg+xml';
+
+    // Een origineel boven deze grootte is nooit een miniatuur: dan liever geen plaatje dan een tegel van megabytes.
+    public const MAX_ORIGINAL_THUMB_BYTES = 1_048_576;
 
     /**
      * @return array{id: int, name: string, file_name: ?string, mime: ?string, type: string, size: ?int, width: ?int, height: ?int, alt: ?string, folder_id: ?int, thumb: ?string, url: ?string, created_at: ?string, is_favorite: bool, tags: array<int, string>}
@@ -45,6 +52,13 @@ final class MediaItemPayload
         $kind = \Dashed\DashedFiles\Classes\Preview\MediaPreviews::kindOf($mime);
         $poster = $kind !== null && $file ? rescue(fn () => app(\Dashed\DashedFiles\Classes\Preview\MediaPreviews::class)->posterFor($item), null, false) : null;
 
+        // Een geanimeerde gif toont in het beheer zijn eerste beeld; zolang
+        // die er nog niet is (of hij niet te maken is) geldt het origineel,
+        // tot de grens van een miniatuur.
+        $gifPoster = $file && GifPoster::isGif($mime) ? self::gifPoster($item, $file) : null;
+        // De beheerminiatuur: klein, voor tegels, lijst, mediaveld en kiezer.
+        $small = $file && ! $gifPoster && $kind === null ? self::adminThumb($item, $file, $type, $mime, $private) : null;
+
         // Alleen een video of pdf draagt deze sleutels: voor elk ander item
         // blijft de payload precies wat hij was.
         $previewKeys = $kind === null ? [] : [
@@ -68,8 +82,9 @@ final class MediaItemPayload
             'folder_id' => self::int($item->folder_id),
             'thumb' => match (true) {
                 $kind !== null => $poster['url'] ?? null,
+                $gifPoster !== null => $gifPoster['url'],
                 $private => $file && in_array($type, ['image', 'svg'], true) ? MediaLibrary::privateUrl($item, null, 'thumb') : null,
-                default => self::thumb($item, $file, $mime, $type, $url),
+                default => self::thumb($item, $file, $mime, $type, $url, self::int($value('size'))),
             },
             'url' => $url,
             'created_at' => $item->created_at?->toIso8601String(),
@@ -91,6 +106,12 @@ final class MediaItemPayload
         ] + ($deletedAt !== null && MediaTrashOrigin::codePurgeAt($item) !== null ? [
             // Alleen een item dat code weggooide (een taak, commando): gaat na de eigen termijn vanzelf weg.
             'trashed_by_system' => true,
+        ] : []) + ($small !== null ? [
+            // Alleen een afbeelding met een gegenereerde beheerminiatuur draagt deze sleutel.
+            'thumb_small' => $small,
+        ] : []) + ($gifPoster !== null ? [
+            // Een geanimeerde gif met een poster: `thumb` is het eerste beeld, `url` blijft de animatie.
+            'animated' => true,
         ] : []) + ($private ? [
             // Alleen een privé-item draagt deze sleutels: voor elk ander item blijft de payload wat hij was.
             'private' => true,
@@ -118,7 +139,7 @@ final class MediaItemPayload
      * ontbrekend formaat een taak klaar, en dat is voor een pagina van 120
      * items geen vast aantal query's meer.
      */
-    private static function thumb(MediaItem $item, ?Media $file, ?string $mime, string $type, ?string $url): ?string
+    private static function thumb(MediaItem $item, ?Media $file, ?string $mime, string $type, ?string $url, ?int $size = null): ?string
     {
         if (! $file || ! in_array($type, ['image', 'svg'], true)) {
             return null;
@@ -126,7 +147,7 @@ final class MediaItemPayload
 
         // Een svg of gif heeft geen formaten: het origineel is de miniatuur.
         if ($type === 'svg' || $mime === 'image/gif') {
-            return $url;
+            return self::originalOrNull($url, $size);
         }
 
         $stored = MediaLibrary::storedUrls($item->conversion_urls)['thumb']['url'] ?? null;
@@ -153,7 +174,74 @@ final class MediaItemPayload
             }
         }
 
-        return $url;
+        return self::originalOrNull($url, $size);
+    }
+
+    /** Het origineel als miniatuur, maar nooit boven een megabyte. */
+    private static function originalOrNull(?string $url, ?int $size): ?string
+    {
+        return $size !== null && $size > self::MAX_ORIGINAL_THUMB_BYTES ? null : $url;
+    }
+
+    /**
+     * De eerste-beeld-poster van een geanimeerde gif, of null: dan is het
+     * een gewone gif (of de poster is er nog niet) en geldt `thumb()`. Een
+     * gif die nog bekeken moet worden wordt aangevraagd.
+     *
+     * @return array{url: string}|null
+     */
+    private static function gifPoster(MediaItem $item, Media $file): ?array
+    {
+        $poster = rescue(fn () => app(\Dashed\DashedFiles\Classes\Preview\MediaPreviews::class)->posterFor($item), null, false);
+
+        if ($poster !== null && GifPoster::available()) {
+            return ['url' => $poster['url']];
+        }
+
+        if (GifPoster::isPending($item, $file)) {
+            GifPoster::requestMissing((int) $item->getKey());
+        }
+
+        return null;
+    }
+
+    /**
+     * Het adres van de beheerminiatuur (320 bij 320, met het focuspunt), of
+     * null. Valt terug op die van een vorig focuspunt; ontbreekt hij nog
+     * terwijl de gewone miniatuur er is, dan vraagt dit de pomp hem te
+     * maken, voor dit ene item (nooit een nulmeting over de bibliotheek).
+     */
+    private static function adminThumb(MediaItem $item, Media $file, string $type, ?string $mime, bool $private): ?string
+    {
+        if ($type !== 'image' || ! MediaLibrary::usesOwnEngine() || ! MediaConversions::isConvertible((string) $mime)) {
+            return null;
+        }
+
+        $focal = $item->focalPoint();
+        $exact = MediaConversions::adminThumbName($focal['x'] ?? null, $focal['y'] ?? null);
+
+        // De gewone miniatuur (of `medium`) is er al: dan werkt de pomp voor dit item, en ontbreekt alleen deze.
+        if (! $file->hasGeneratedConversion($exact)
+            && ($file->hasGeneratedConversion(MediaConversions::thumbName($focal['x'] ?? null, $focal['y'] ?? null)) || $file->hasGeneratedConversion('medium'))) {
+            rescue(fn () => app(ConversionPump::class)->requestMissing((int) $item->getKey()), report: false);
+        }
+
+        foreach (array_unique([$exact, ConversionDefinition::ADMIN_THUMB]) as $name) {
+            if (! $file->hasGeneratedConversion($name)) {
+                continue;
+            }
+
+            if ($private) {
+                return MediaLibrary::privateUrl($item, null, ConversionDefinition::ADMIN_THUMB);
+            }
+
+            MediaPickerFileCache::rememberFocal($item->getKey(), fn () => [$focal['x'] ?? null, $focal['y'] ?? null]);
+            MediaPickerFileCache::rememberConversions($item->getKey(), fn () => $item->conversions);
+
+            return self::safely(fn () => $file->getUrl($name));
+        }
+
+        return null;
     }
 
     private static function int(mixed $value): ?int
