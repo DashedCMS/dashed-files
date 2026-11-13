@@ -554,6 +554,10 @@ class ConversionPump
                 $skip = $names === [] ? null : $this->skipReason($row, $state);
 
                 if ($skip !== null) {
+                    if (str_contains($skip, 'memory_limit')) {
+                        $this->warnMemorySkip((int) $row->id, $skip);
+                    }
+
                     $counters['skipped']++;
                     $problems[] = '#' . $row->id . ': skipped, ' . $skip;
                     $names = [];
@@ -788,6 +792,10 @@ class ConversionPump
             return sprintf('%d megapixels is above the limit of %d for generating formats', (int) round($width * $height / 1_000_000), (int) $limit);
         }
 
+        if ($reason = self::memoryShortfall($width, $height, (int) $row->id)) {
+            return $reason;
+        }
+
         $asked = $run && $run->type === self::FORCE && in_array((int) $row->id, $run->itemIds(), true);
 
         if (! $asked && (int) ($properties[self::ATTEMPTS_PROPERTY] ?? 0) >= self::MAX_ATTEMPTS) {
@@ -795,6 +803,97 @@ class ConversionPump
         }
 
         return null;
+    }
+
+    /** Alleen voor tests: een nagebootste geheugenlimiet in bytes (-1 = onbeperkt) en gebruik. */
+    public static ?int $memoryLimitOverride = null;
+
+    public static ?int $memoryUsageOverride = null;
+
+    /** Bytes per pixel die gd tijdens het schalen nodig heeft (bron en doel, met overhead). */
+    public const GD_BYTES_PER_PIXEL = 6;
+
+    /** Marge voor het proces zelf, in bytes. */
+    public const MEMORY_MARGIN = 32 * 1024 * 1024;
+
+    /**
+     * Past dit origineel niet in het geheugen dat gd nog heeft? Dan de reden
+     * (met de uitweg), anders null. Alleen voor gd: imagick werkt buiten het
+     * geheugen van PHP en wordt niet geblokkeerd. Een grens van -1 is
+     * onbeperkt. Zonder deze toets geeft gd een fatale fout die de hele
+     * werker meeneemt, en dat is geen uitzondering die de pomp kan vangen.
+     */
+    public static function memoryShortfall(?int $width, ?int $height, ?int $itemId = null): ?string
+    {
+        if (! $width || ! $height || MediaCapabilities::imageDriver() !== 'gd') {
+            return null;
+        }
+
+        $limit = self::$memoryLimitOverride ?? self::parseMemoryLimit((string) ini_get('memory_limit'));
+
+        if ($limit < 0) {
+            return null;
+        }
+
+        $needed = $width * $height * self::GD_BYTES_PER_PIXEL + self::MEMORY_MARGIN;
+        $available = $limit - (self::$memoryUsageOverride ?? memory_get_usage(true));
+
+        if ($needed <= $available) {
+            return null;
+        }
+
+        return sprintf(
+            'needs about %d MB of memory for %dx%d pixels and only %d MB is left under memory_limit; run php -d memory_limit=1G artisan dashed:media-conversions force --ids=%s',
+            (int) ceil($needed / 1048576),
+            $width,
+            $height,
+            (int) max(0, floor($available / 1048576)),
+            $itemId ?? '<id>',
+        );
+    }
+
+    /** Bytes uit de notatie van php.ini (`256M`, `1G`, `-1`). */
+    protected static function parseMemoryLimit(string $value): int
+    {
+        $value = trim($value);
+
+        if ($value === '' || $value === '-1') {
+            return -1;
+        }
+
+        $number = (int) $value;
+
+        return match (strtolower(substr($value, -1))) {
+            'g' => $number * 1024 ** 3,
+            'm' => $number * 1024 ** 2,
+            'k' => $number * 1024,
+            default => $number,
+        };
+    }
+
+    /** De item-id's die om geheugen worden overgeslagen en waar iets voor ontbreekt. De meting van de doctor. */
+    public function skippedForMemory(): array
+    {
+        $ids = [];
+
+        foreach ($this->candidates(null)->orderBy('items.id')->lazy(500) as $row) {
+            $properties = $this->properties($row);
+
+            if (self::memoryShortfall($this->number($properties['original_width'] ?? null), $this->number($properties['original_height'] ?? null), (int) $row->id) !== null
+                && $this->missingNames($row, false, true) !== []) {
+                $ids[] = (int) $row->id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /** Eén waarschuwing per item per dag, niet een per run of per aanroep. */
+    public function warnMemorySkip(int $itemId, string $reason): void
+    {
+        if (rescue(fn () => Cache::add('media-conversion-memory-skip-' . $itemId, true, 86400), true, false)) {
+            Log::warning('Media item #' . $itemId . ' is skipped for generating formats: ' . $reason);
+        }
     }
 
     /**

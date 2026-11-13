@@ -39,6 +39,24 @@ class RegenerateMediaLibraryConversions implements ShouldQueue
      */
     public function handle(): void
     {
+        // Een origineel dat gd niet in het geheugen past geeft een fatale
+        // fout in de werker: overslaan met een melding, zoals de pomp.
+        $media = rescue(fn () => \Spatie\MediaLibrary\MediaCollections\Models\Media::find($this->mediaId), null, false);
+
+        if ($media) {
+            $reason = \Dashed\DashedFiles\Classes\Conversions\ConversionPump::memoryShortfall(
+                is_numeric($width = $media->getCustomProperty('original_width')) ? (int) $width : null,
+                is_numeric($height = $media->getCustomProperty('original_height')) ? (int) $height : null,
+                (int) $media->model_id,
+            );
+
+            if ($reason !== null) {
+                app(\Dashed\DashedFiles\Classes\Conversions\ConversionPump::class)->warnMemorySkip((int) $media->model_id, $reason);
+
+                return;
+            }
+        }
+
         // Hetzelfde slot als de pomp: elke schrijver zet de hele kolom
         // `generated_conversions` terug, dus twee tegelijk verliezen een formaat.
         $lock = Cache::lock(\Dashed\DashedFiles\Classes\Conversions\ConversionPump::mediaLockKey((int) $this->mediaId), 120);

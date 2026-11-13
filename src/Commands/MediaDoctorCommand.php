@@ -78,6 +78,7 @@ class MediaDoctorCommand extends Command
             'checkCapabilities',
             'checkConversionRuns',
             'checkGivenUpConversions',
+            'checkSkippedForMemory',
             'checkUsageIndex',
             'checkUnbuildableBlocks',
             'checkTextMirror',
@@ -766,6 +767,24 @@ class MediaDoctorCommand extends Command
             $items === [] ? 0 : $items,
             true,
             $items === [] ? null : 'skipped by every run; retry one with dashed:media-conversions force --ids=<id>',
+        );
+    }
+
+    /**
+     * Originelen die gd niet in het geheugen past: de pomp en de taak slaan ze
+     * over (een fatale fout neemt anders de werker mee). Uploaden wordt niet geweigerd.
+     * Informatief: de uitweg is een run met meer geheugen.
+     */
+    protected function checkSkippedForMemory(): array
+    {
+        $items = app(\Dashed\DashedFiles\Classes\Conversions\ConversionPump::class)->skippedForMemory();
+
+        return $this->result(
+            'conversions_skipped_memory',
+            'Items skipped because the original does not fit in memory',
+            $items === [] ? 0 : $items,
+            true,
+            $items === [] ? null : 'retry with more memory: php -d memory_limit=1G artisan dashed:media-conversions force --ids=<id>',
         );
     }
 
