@@ -6,9 +6,9 @@ use Throwable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Dashed\DashedFiles\Models\MediaItem;
+use Illuminate\Database\Eloquent\Builder;
 use Dashed\DashedFiles\Classes\Usage\MediaUsages;
 use Dashed\DashedFiles\Classes\Usage\MediaUsageIndexer;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * De lijstquery van de mediabibliotheek, opgebouwd uit een filter-array.

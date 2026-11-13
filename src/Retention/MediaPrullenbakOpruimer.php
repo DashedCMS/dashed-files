@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Dashed\DashedFiles\Retention;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Dashed\DashedCore\Retention\Termijn;
 use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Models\MediaFolder;
 use Dashed\DashedFiles\Classes\MediaLibrary;
+use Dashed\DashedCore\Retention\Contracts\Opruimer;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Classes\Browse\MediaTrashOrigin;
-use Dashed\DashedCore\Retention\Contracts\Opruimer;
 
 /**
  * Leegt de prullenbak van de mediabibliotheek, maar alleen als dat bewust is

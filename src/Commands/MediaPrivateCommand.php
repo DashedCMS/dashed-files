@@ -4,9 +4,9 @@ namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
 use Dashed\DashedFiles\Models\MediaItem;
-use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Jobs\RelocateMediaItems;
 use Dashed\DashedFiles\Classes\Access\MediaStorage;
+use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Classes\Access\MediaRelocator;
 use Dashed\DashedFiles\Classes\Access\MediaVisibility;
 

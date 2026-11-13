@@ -7,10 +7,10 @@ use ReflectionProperty;
 use Illuminate\Support\Facades\Log;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Repeater;
+use Dashed\DashedFiles\Models\MediaItem;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Builder\Block;
-use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Filament\Forms\Components\MediaField;
 
 /**

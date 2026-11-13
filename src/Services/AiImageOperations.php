@@ -392,7 +392,7 @@ class AiImageOperations
         }, true, false);
     }
 
-        public static function isConfigured(?string $siteId = null): bool
+    public static function isConfigured(?string $siteId = null): bool
     {
         try {
             return (bool) Customsetting::get('fal_api_key', $siteId);

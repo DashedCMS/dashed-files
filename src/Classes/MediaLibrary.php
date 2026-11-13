@@ -7,14 +7,14 @@ use Throwable;
 use InvalidArgumentException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Gate;
 use Dashed\DashedCore\Classes\Sites;
-use Dashed\DashedCore\Models\Customsetting;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use Dashed\DashedFiles\Models\MediaItem;
 use Illuminate\Database\Eloquent\Builder;
 use Dashed\DashedFiles\Models\MediaFolder;
+use Dashed\DashedCore\Models\Customsetting;
 use Dashed\DashedFiles\Jobs\HashMediaItems;
 use Dashed\DashedFiles\Events\MediaIngested;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,13 +22,13 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Dashed\DashedFiles\Observers\MediaObserver;
 use Dashed\DashedFiles\Classes\Svg\SvgSanitizer;
 use Dashed\DashedFiles\Classes\Browse\MediaMirror;
+use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Classes\Browse\MediaTagging;
 use Dashed\DashedFiles\Classes\Ingest\IngestPolicy;
 use Dashed\DashedFiles\Classes\Ingest\IngestResult;
 use Dashed\DashedFiles\Classes\Ingest\IncomingMedia;
-use Dashed\DashedFiles\Classes\Ingest\MediaChecksums;
 use Dashed\DashedFiles\Classes\Ingest\PreparedMedia;
-use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
+use Dashed\DashedFiles\Classes\Ingest\MediaChecksums;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Classes\Ingest\MediaRejectedException;
 
@@ -914,45 +914,45 @@ class MediaLibrary
 
         try {
             return $this->swap($item, function (MediaItem $fresh, Media $current) use ($recipe, $userId, $guard) {
-            $source = $this->sourceOf($fresh) ?? $current;
-            $mime = strtolower((string) $source->mime_type);
+                $source = $this->sourceOf($fresh) ?? $current;
+                $mime = strtolower((string) $source->mime_type);
 
-            if (! in_array($mime, MediaEdits::MIMES, true)) {
-                throw new MediaRejectedException(__('Alleen een jpeg, png of webp kan worden bewerkt.'));
-            }
+                if (! in_array($mime, MediaEdits::MIMES, true)) {
+                    throw new MediaRejectedException(__('Alleen een jpeg, png of webp kan worden bewerkt.'));
+                }
 
-            // Vóór er iets wordt opgehaald of ingeladen: een foto van 48
-            // megapixel kost de beeldbewerking honderden MB geheugen.
-            $this->guardEditSize($this->dimension($source->getCustomProperty('original_width')), $this->dimension($source->getCustomProperty('original_height')));
+                // Vóór er iets wordt opgehaald of ingeladen: een foto van 48
+                // megapixel kost de beeldbewerking honderden MB geheugen.
+                $this->guardEditSize($this->dimension($source->getCustomProperty('original_width')), $this->dimension($source->getCustomProperty('original_height')));
 
-            // Een lokale kopie van de bron; het resultaat staat ernaast.
-            $local = IncomingMedia::fromDisk((string) $source->disk, $source->getPathRelativeToRoot(), 'upload');
-            $guard->paths[] = $local->localPath;
+                // Een lokale kopie van de bron; het resultaat staat ernaast.
+                $local = IncomingMedia::fromDisk((string) $source->disk, $source->getPathRelativeToRoot(), 'upload');
+                $guard->paths[] = $local->localPath;
 
-            try {
-                // Afmetingen die niet op de rij stonden: uit de kop van het bestand, nog zonder het in te laden.
-                $size = @getimagesize($local->localPath);
-                $this->guardEditSize($size ? (int) $size[0] : null, $size ? (int) $size[1] : null);
+                try {
+                    // Afmetingen die niet op de rij stonden: uit de kop van het bestand, nog zonder het in te laden.
+                    $size = @getimagesize($local->localPath);
+                    $this->guardEditSize($size ? (int) $size[0] : null, $size ? (int) $size[1] : null);
 
-                $result = MediaEdits::render($local->localPath, $mime, $recipe);
-                $guard->paths[] = $result;
-            } finally {
-                @unlink($local->localPath);
-            }
+                    $result = MediaEdits::render($local->localPath, $mime, $recipe);
+                    $guard->paths[] = $result;
+                } finally {
+                    @unlink($local->localPath);
+                }
 
-            return [
-                new IncomingMedia(
-                    localPath: $result,
-                    fileName: (string) $source->file_name,
-                    source: 'upload',
-                    folderId: $fresh->folder_id === null ? null : (int) $fresh->folder_id,
-                    uploadedByUserId: $userId,
-                    meta: ['edited_from' => (int) $source->getKey()],
-                    allowedMimes: MediaEdits::MIMES,
-                ),
-                // Alleen de eerste keer wordt het huidige bestand de bron.
-                $source->is($current) ? MediaItem::COLLECTION_SOURCE : MediaItem::COLLECTION_REPLACED,
-            ];
+                return [
+                    new IncomingMedia(
+                        localPath: $result,
+                        fileName: (string) $source->file_name,
+                        source: 'upload',
+                        folderId: $fresh->folder_id === null ? null : (int) $fresh->folder_id,
+                        uploadedByUserId: $userId,
+                        meta: ['edited_from' => (int) $source->getKey()],
+                        allowedMimes: MediaEdits::MIMES,
+                    ),
+                    // Alleen de eerste keer wordt het huidige bestand de bron.
+                    $source->is($current) ? MediaItem::COLLECTION_SOURCE : MediaItem::COLLECTION_REPLACED,
+                ];
             }, $recipe);
         } finally {
             $guard->done = true;

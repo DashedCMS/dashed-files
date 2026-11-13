@@ -4,8 +4,8 @@ namespace Dashed\DashedFiles\Models\Scopes;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
  * De gewone prullenbak-scope, maar pas zodra de kolom er is. De code kan

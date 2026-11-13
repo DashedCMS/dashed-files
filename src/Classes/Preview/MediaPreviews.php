@@ -7,15 +7,14 @@ use Illuminate\Support\Facades\Storage;
 use Dashed\DashedFiles\Models\MediaItem;
 use Illuminate\Database\Eloquent\Builder;
 use Dashed\DashedFiles\Classes\MediaLibrary;
-use Dashed\DashedFiles\Classes\MediaCapabilities;
+use Dashed\DashedFiles\Jobs\GenerateMediaPreview;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Classes\Ingest\IngestPolicy;
-use Dashed\DashedFiles\Classes\MediaPickerFileCache;
 use Dashed\DashedFiles\Classes\Ingest\IncomingMedia;
-use Dashed\DashedFiles\Jobs\GenerateMediaPreview;
+use Dashed\DashedFiles\Classes\MediaPickerFileCache;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Classes\Browse\MediaItemPayload;
 use Dashed\DashedFiles\Contracts\MediaPreviewGenerator;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Classes\Ingest\MediaRejectedException;
 
 /**

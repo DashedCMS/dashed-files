@@ -4,10 +4,9 @@ namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Dashed\DashedFiles\Models\MediaItem;
-use Dashed\DashedFiles\Classes\ConversionDefinition;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\Schema;
+use Dashed\DashedFiles\Models\MediaItem;
 
 class MediaDoctorCommand extends Command
 {
@@ -240,8 +239,13 @@ class MediaDoctorCommand extends Command
             $details[] = $key . ' (' . ($facts === [] ? '-' : implode(', ', $facts)) . ')';
         }
 
-        return $this->result('sources', 'External sources', $parts === [] ? 'none registered' : implode(', ', $parts), true,
-            $details === [] ? null : 'site ' . ($siteId ?? '-') . ': ' . implode('; ', $details));
+        return $this->result(
+            'sources',
+            'External sources',
+            $parts === [] ? 'none registered' : implode(', ', $parts),
+            true,
+            $details === [] ? null : 'site ' . ($siteId ?? '-') . ': ' . implode('; ', $details)
+        );
     }
 
     /**

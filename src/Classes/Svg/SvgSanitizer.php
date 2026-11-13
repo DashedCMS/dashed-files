@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Dashed\DashedFiles\Classes\Svg;
 
 use DOMAttr;
-use DOMDocument;
-use DOMElement;
 use DOMXPath;
-use InvalidArgumentException;
+use DOMElement;
+use DOMDocument;
 use SplObjectStorage;
+use InvalidArgumentException;
 
 /**
  * Schoont een SVG op door hem opnieuw op te bouwen: alleen wat op de lijsten

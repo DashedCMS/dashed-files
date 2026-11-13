@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Spatie\MediaLibrary\Conversions\FileManipulator;
 use Dashed\DashedFiles\Classes\Queue\WorkBudget;
 use Dashed\DashedFiles\Classes\ConversionDefinition;
+use Spatie\MediaLibrary\Conversions\FileManipulator;
 
 /**
  * Eenmalig herstel: `heighten` zette tot november 2026 een breedte in plaats

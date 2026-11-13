@@ -3,9 +3,9 @@
 namespace Dashed\DashedFiles\Observers;
 
 use Illuminate\Support\Facades\Storage;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Classes\MediaLibrary;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Dashed\DashedFiles\Exceptions\DisallowedFileTypeException;
 
 class MediaObserver

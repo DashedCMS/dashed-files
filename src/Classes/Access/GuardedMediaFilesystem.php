@@ -5,8 +5,8 @@ namespace Dashed\DashedFiles\Classes\Access;
 use RuntimeException;
 use Illuminate\Support\Facades\DB;
 use Dashed\DashedFiles\Models\MediaItem;
-use Spatie\MediaLibrary\MediaCollections\Filesystem;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
+use Spatie\MediaLibrary\MediaCollections\Filesystem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**

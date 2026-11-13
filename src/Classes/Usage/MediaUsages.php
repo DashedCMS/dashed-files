@@ -6,10 +6,10 @@ use Throwable;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Dashed\DashedFiles\Models\MediaItem;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
  * Leest de gebruiksindex voor de beheerpagina.

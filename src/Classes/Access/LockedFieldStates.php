@@ -2,9 +2,10 @@
 
 namespace Dashed\DashedFiles\Classes\Access;
 
+use function Livewire\on;
+
 use Illuminate\Support\Arr;
 
-use function Livewire\on;
 use function Livewire\store;
 
 /**

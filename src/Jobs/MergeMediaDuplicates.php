@@ -4,8 +4,8 @@ namespace Dashed\DashedFiles\Jobs;
 
 use Throwable;
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
 use Dashed\DashedFiles\Models\MediaItem;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;

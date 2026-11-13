@@ -5,8 +5,8 @@ namespace Dashed\DashedFiles\Classes\Legacy;
 use PhpToken;
 use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Models\MediaFolder;
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 /**
  * Zet klantcode om van het model van het oude mediabibliotheekpakket naar

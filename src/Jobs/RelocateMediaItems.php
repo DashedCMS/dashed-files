@@ -4,8 +4,8 @@ namespace Dashed\DashedFiles\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Queue\InteractsWithQueue;
 use Dashed\DashedFiles\Models\MediaItem;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Dashed\DashedFiles\Classes\Queue\WorkBudget;

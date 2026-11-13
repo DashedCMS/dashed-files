@@ -3,9 +3,9 @@
 namespace Dashed\DashedFiles\Classes;
 
 use Throwable;
-use Illuminate\Database\Eloquent\Model;
 use Dashed\DashedCore\Classes\Sites;
 use Dashed\DashedCore\Classes\Locales;
+use Illuminate\Database\Eloquent\Model;
 use Dashed\DashedCore\Models\Customsetting;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 

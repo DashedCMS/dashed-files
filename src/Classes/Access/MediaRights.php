@@ -4,8 +4,8 @@ namespace Dashed\DashedFiles\Classes\Access;
 
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Gate;
-use Dashed\DashedFiles\Classes\MediaLibrary;
 use Filament\Models\Contracts\FilamentUser;
+use Dashed\DashedFiles\Classes\MediaLibrary;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 

@@ -5,14 +5,14 @@ namespace Dashed\DashedFiles\Models;
 use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\MediaLibrary\InteractsWithMedia;
 use Dashed\DashedFiles\Classes\MediaTexts;
-use Dashed\DashedFiles\Models\Builders\MediaItemBuilder;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Dashed\DashedFiles\Models\Builders\MediaItemBuilder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class MediaItem extends Model implements HasMedia
 {

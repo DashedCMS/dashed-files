@@ -3,8 +3,8 @@
 namespace Dashed\DashedFiles\Classes;
 
 use Throwable;
-use Livewire\Component as LivewireComponent;
 use Dashed\DashedFiles\Models\MediaItem;
+use Livewire\Component as LivewireComponent;
 use Dashed\DashedFiles\Classes\Browse\MediaItemPayload;
 use Dashed\DashedFiles\Filament\Forms\Components\MediaField;
 use Filament\Support\Livewire\Partials\PartialsComponentHook;

@@ -209,7 +209,7 @@ class AiMediaLibraryActions
         return true;
     }
 
-        protected static function notifyQueued(): void
+    protected static function notifyQueued(): void
     {
         Notification::make()
             ->title(__('Bezig met verwerken'))

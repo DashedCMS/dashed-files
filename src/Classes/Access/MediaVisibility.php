@@ -8,8 +8,8 @@ use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Models\MediaFolder;
 use Dashed\DashedFiles\Classes\MediaHelper;
 use Dashed\DashedFiles\Classes\MediaLibrary;
-use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Jobs\RelocateMediaItems;
+use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Classes\MediaPickerFileCache;
 use Dashed\DashedFiles\Jobs\FlushMediaDependentCaches;
 

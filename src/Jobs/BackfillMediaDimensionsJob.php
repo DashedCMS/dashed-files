@@ -5,10 +5,10 @@ namespace Dashed\DashedFiles\Jobs;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Dashed\DashedFiles\Models\MediaItem;
-use Dashed\DashedFiles\Classes\MediaLibrary;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Dashed\DashedFiles\Classes\MediaLibrary;
 use Dashed\DashedFiles\Observers\MediaObserver;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 

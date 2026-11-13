@@ -140,6 +140,7 @@ final class AiSpend
     public static function reserve(string $kind, ?string $siteId, \Closure $callback): mixed
     {
         $siteId = self::site($siteId);
+
         try {
             return Cache::lock(self::lockKey($kind, $siteId), self::LOCK_SECONDS)->block(self::LOCK_WAIT, function () use ($kind, $siteId, $callback) {
                 $limit = self::limit($kind, $siteId);

@@ -4,9 +4,9 @@ namespace Dashed\DashedFiles\Filament\Forms\Components;
 
 use Closure;
 use Throwable;
+use BadMethodCallException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use BadMethodCallException;
 use Filament\Forms\Components\FileUpload;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
