@@ -98,6 +98,9 @@ final class MediaItemPayload
         ] : []);
     }
 
+    /** Grootste origineel dat nog als miniatuur in het beheer mag dienen. */
+    private const MAX_ORIGINAL_THUMB_BYTES = 1024 * 1024;
+
     public static function typeOf(?string $mime): string
     {
         $mime = (string) $mime;
@@ -116,7 +119,8 @@ final class MediaItemPayload
      * op de mediarij staat, en anders het origineel. Bewust niet via
      * getSingleMedia(): die schrijft per item zijn url terug en zet bij een
      * ontbrekend formaat een taak klaar, en dat is voor een pagina van 120
-     * items geen vast aantal query's meer.
+     * items geen vast aantal query's meer. De terugvalvolgorde: miniatuur,
+     * `medium`, het origineel tot 1 MB, anders niets.
      */
     private static function thumb(MediaItem $item, ?Media $file, ?string $mime, string $type, ?string $url): ?string
     {
@@ -153,7 +157,12 @@ final class MediaItemPayload
             }
         }
 
-        return $url;
+        // Geen formaat gegenereerd: het origineel alleen als het klein is.
+        // Een foto van 8000x6000 is 12 MB voor een tegel van 300 pixels. Zonder
+        // adres toont de tegel het pictogram van het bestandstype.
+        $size = $item->getAttribute('size') ?? $file->size;
+
+        return $size === null || (int) $size <= self::MAX_ORIGINAL_THUMB_BYTES ? $url : null;
     }
 
     private static function int(mixed $value): ?int
