@@ -120,10 +120,33 @@ class MediaPickerModal extends Component
         // De markup is voor iedereen gelijk (de instellingen zitten er niet in):
         // alleen de eerste opening na het laden van de pagina vraagt erom.
         if (! ($request['template'] ?? false)) {
-            $result['html'] = view('dashed-files::media.browser', ['mediaConfig' => []])->render();
+            $result['html'] = view('dashed-files::media.browser', ['mediaConfig' => [], 'mediaMarkupSources' => $this->markupSources()])->render();
         }
 
         return $result;
+    }
+
+    /**
+     * De bronnen voor de markup van de lijst. Die markup wordt één keer per
+     * pagina opgehaald en is voor elk veld gelijk, dus staat er een tabblad
+     * voor elke bron die deze gebruiker mag gebruiken; welke daarvan zichtbaar
+     * is beslist de instelling van de opening (config.sources) in de browser.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function markupSources(): array
+    {
+        $kept = $this->pick;
+        $this->pick['sources'] = null;
+
+        try {
+            return array_map(
+                fn (array $source) => array_intersect_key($source, array_flip(['key', 'kind', 'label', 'icon'])),
+                $this->mediaSourcesConfig(),
+            );
+        } finally {
+            $this->pick = $kept;
+        }
     }
 
     #[Renderless]

@@ -9,6 +9,8 @@
 --}}
 @php
     $mediaConfig ??= [];
+    // Het keuzevenster krijgt zijn instellingen per opening apart (config.sources) en geeft hier de bronnen voor de markup mee.
+    $mediaSources = $mediaMarkupSources ?? ($mediaConfig['sources'] ?? []);
     $mediaItemActions ??= [];
     $mediaBulkActions ??= [];
     $mediaToolbarActions ??= [];
@@ -192,9 +194,9 @@
             <button type="button" role="tab" class="dashed-media-picktab" :aria-selected="pickTab === 'recent'" x-on:click="setPickTab('recent')">{!! $icon('heroicon-o-clock') !!} {{ __('Recent') }}</button>
             <button type="button" role="tab" class="dashed-media-picktab" :aria-selected="pickTab === 'favorites'" x-on:click="setPickTab('favorites')">{!! $icon('heroicon-o-star') !!} {{ __('Favorieten') }}</button>
             <button type="button" role="tab" class="dashed-media-picktab" x-show="canUpload" :aria-selected="pickTab === 'upload'" x-on:click="setPickTab('upload')">{!! $icon('heroicon-o-arrow-up-tray') !!} {{ __('Uploaden') }}</button>
-            {{-- Fase 11: per beschikbare externe bron een tabblad. Een bron die er niet is staat niet in de lijst. --}}
-            @foreach (($mediaConfig['sources'] ?? []) as $mediaSource)
-                <button type="button" role="tab" class="dashed-media-picktab" x-show="canUpload" data-media-source-tab="{{ $mediaSource['key'] }}" :aria-selected="pickTab === 'source' && sourceKey === @js($mediaSource['key'])" x-on:click="openSource(@js($mediaSource['key']))">{!! $icon($mediaSource['icon'] ?? null) !!} {{ $mediaSource['label'] }}</button>
+            {{-- Fase 11: per beschikbare externe bron een tabblad. Een bron die er niet is, of die dit veld niet toestaat, staat niet in de instelling (sources) en blijft verborgen. In het keuzevenster staat de markup voor alle bronnen, want ze wordt één keer opgehaald. --}}
+            @foreach ($mediaSources as $mediaSource)
+                <button type="button" role="tab" class="dashed-media-picktab" x-show="canUpload && sources.some((entry) => entry.key === @js($mediaSource['key']))" data-media-source-tab="{{ $mediaSource['key'] }}" :aria-selected="pickTab === 'source' && sourceKey === @js($mediaSource['key'])" x-on:click="openSource(@js($mediaSource['key']))">{!! $icon($mediaSource['icon'] ?? null) !!} {{ $mediaSource['label'] }}</button>
             @endforeach
         </div>
 
@@ -307,7 +309,7 @@
             </button>
 
             {{-- Fase 11: de externe bronnen, op de beheerpagina als knop. --}}
-            @foreach (($mediaConfig['sources'] ?? []) as $mediaSource)
+            @foreach ($mediaSources as $mediaSource)
                 <button type="button" class="dashed-media-btn" x-show="manage && canUpload && ! inTrash" data-media-source-button="{{ $mediaSource['key'] }}" x-bind:aria-pressed="sourceKey === @js($mediaSource['key'])" x-on:click="openSource(@js($mediaSource['key']))">
                     {!! $icon($mediaSource['icon'] ?? null) !!} {{ $mediaSource['label'] }}
                 </button>
@@ -456,7 +458,7 @@
             x-text in, dus als tekst; een link bestaat alleen voor een
             https-adres dat de server op het domein van de aanbieder vond.
         --}}
-        @if (! empty($mediaConfig['sources']))
+        @if (! empty($mediaSources))
             <div class="dashed-media-source" x-show="sourceKey && (manage || pickTab === 'source')" x-cloak data-media-source-panel>
                 <div class="dashed-media-source-head">
                     <strong x-text="source.title || source.label"></strong>
