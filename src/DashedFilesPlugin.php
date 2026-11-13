@@ -23,6 +23,17 @@ class DashedFilesPlugin implements Plugin
             \Dashed\DashedFiles\Filament\Pages\Settings\MediaSettingsPage::class,
         ]);
 
+        // Stijl en script van de mediabibliotheek: statisch, met de hash van de
+        // inhoud in de URL en dus een jaar te bewaren. Binnen de paneelroutes
+        // (de IP-lijst blijft gelden), maar zonder inlog: er staat niets in
+        // wat niet in het pakket zelf staat.
+        $panel->routes(function (): void {
+            \Illuminate\Support\Facades\Route::get('/media-assets/{version}/dashed-media.{file}', \Dashed\DashedFiles\Http\Controllers\MediaAssetController::class)
+                ->where('version', '[a-f0-9]{12}')
+                ->where('file', 'css|js')
+                ->name(\Dashed\DashedFiles\Classes\MediaAssets::ROUTE);
+        });
+
         // De zip van een selectie: achter de web- en auth-middleware van het
         // paneel (MFA, IP-lijst), en daarbovenop ondertekend.
         $panel->authenticatedRoutes(function (): void {
