@@ -742,7 +742,10 @@ class MediaHelper
                 // werker) is het formaat er op dit punt al: dan meteen het
                 // echte adres, in plaats van een terugval die blijft staan
                 // tot de voorlopige cache verloopt.
-                $fresh = ! $this->deferToPump && config('queue.default') === 'sync' ? rescue(fn () => $file->fresh(), null, false) : null;
+                // Alleen in de console: in het verzoek van een bezoeker gaat
+                // de taak na het antwoord (queueRegeneration), dus daar is het
+                // formaat er nog niet en geldt de terugval.
+                $fresh = ! $this->deferToPump && config('queue.default') === 'sync' && ! $this->inVisitorRequest() ? rescue(fn () => $file->fresh(), null, false) : null;
                 $url = $fresh ? $this->generatedUrl($fresh, $effective) : null;
 
                 if ($url !== null) {
@@ -1095,12 +1098,33 @@ class MediaHelper
 
         Cache::put($attemptsKey, $attempts + 1, self::REGENERATE_MAX_WAIT * 7);
 
+        // Met een synchrone wachtrij zou dispatch() het formaat in het verzoek
+        // van de bezoeker maken (seconden en honderden MB bij een grote foto,
+        // bij een lage memory_limit een 500). Dan pas na het antwoord, net
+        // zoals een echte wachtrij het buiten het verzoek doet.
+        if (config('queue.default') === 'sync' && $this->inVisitorRequest()) {
+            RegenerateMediaLibraryConversions::dispatchAfterResponse(
+                $file->id,
+                null,
+                $conversionName,
+                $file->generated_conversions ?? []
+            );
+
+            return;
+        }
+
         RegenerateMediaLibraryConversions::dispatch(
             $file->id,
             null,
             $conversionName,
             $file->generated_conversions ?? []
         );
+    }
+
+    /** Een webverzoek (geen artisan, geen wachtrijwerker). */
+    private function inVisitorRequest(): bool
+    {
+        return ! app()->runningInConsole();
     }
 
     private function regenerateLockKey(Media $file): string
