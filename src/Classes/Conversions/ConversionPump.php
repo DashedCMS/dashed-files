@@ -909,7 +909,39 @@ class ConversionPump
             throw new RuntimeException("The format [{$name}] is not registered for this file.");
         }
 
+        // Eén decodering voor alle formaten van dit item (schakelaar
+        // conversions.single_decode); wat de generator niet kan, gaat via Spatie.
+        if (SingleDecodeGenerator::enabled() && $this->singleDecode($media, $original)->generate($media, $conversion)) {
+            return;
+        }
+
         (new PerformConversionAction())->execute($conversion, $media, $original);
+    }
+
+    private ?SingleDecodeGenerator $singleDecode = null;
+
+    private ?string $singleDecodeFor = null;
+
+    private function singleDecode(Media $media, string $original): SingleDecodeGenerator
+    {
+        if ($this->singleDecode && $this->singleDecodeFor === $original) {
+            return $this->singleDecode;
+        }
+
+        $this->releaseSingleDecode();
+
+        $sets = ConversionCollection::createForMedia($media)->map(fn (Conversion $conversion) => $conversion->getManipulations()->toArray())->all();
+
+        $this->singleDecodeFor = $original;
+
+        return $this->singleDecode = new SingleDecodeGenerator($original, MediaCapabilities::imageDriver(), array_values($sets));
+    }
+
+    private function releaseSingleDecode(): void
+    {
+        $this->singleDecode?->release();
+        $this->singleDecode = null;
+        $this->singleDecodeFor = null;
     }
 
     /**
@@ -975,6 +1007,11 @@ class ConversionPump
                 throw new RuntimeException('The file is gone from the disk or empty.');
             }
 
+            // Van groot naar klein: een verkleind formaat dient als tussenstap voor het volgende.
+            if (SingleDecodeGenerator::enabled() && $run->type !== self::AVIF) {
+                $names = SingleDecodeGenerator::order($media, $names);
+            }
+
             $work = function () use ($media, $names, $original, $outOfTime, $run, &$result) {
                 foreach ($names as $index => $name) {
                     // Vers: een andere schrijver kan intussen een formaat hebben bijgeschreven.
@@ -1013,6 +1050,7 @@ class ConversionPump
             $result['problem'] = $exception->getMessage() ?: get_class($exception);
         } finally {
             self::$handling = null;
+            $this->releaseSingleDecode();
             rescue(fn () => $directory?->delete(), report: false);
             rescue(fn () => $lock->release(), report: false);
         }

@@ -114,6 +114,17 @@ return [
         // met zijn eigen optimizers aantoonbaar kleinere bestanden geeft.
         'optimize' => env('DASHED_FILES_OPTIMIZE_CONVERSIONS', false),
 
+        // Maakt de formaten van een item uit één decodering van het
+        // origineel in plaats van het origineel per formaat opnieuw in te
+        // lezen (Spatie), met bij Imagick een verkleinde JPEG-decodering en
+        // zonder EXIF of GPS in de formaten. Standaard uit. Een formaat dat de
+        // generator niet kan maken valt vanzelf terug op Spatie.
+        'single_decode' => (bool) env('DASHED_MEDIA_SINGLE_DECODE', false),
+
+        // Kwaliteit (1 tot 100) van de webp-formaten die de generator maakt.
+        // 80 is wat GD standaard deed, dus dat blijft de standaard.
+        'quality' => env('DASHED_MEDIA_WEBP_QUALITY', 80),
+
         // Een eigen wachtrij voor AVIF-runs (AVIF coderen is traag). Leeg:
         // dezelfde wachtrij als de andere runs (`ingest.queue`).
         'avif_queue' => env('DASHED_FILES_AVIF_QUEUE'),
