@@ -45,7 +45,7 @@ class RegenerateMediaLibraryConversions implements ShouldQueue
         rescue(fn () => $lock->block(20), report: false);
 
         try {
-            Artisan::call('media-library:regenerate', ['--ids' => $this->mediaId, '--force' => true, '--only-missing']);
+            Artisan::call('media-library:regenerate', ['--ids' => $this->mediaId, '--force' => true, '--only-missing' => true]);
         } finally {
             rescue(fn () => $lock->release(), report: false);
         }
