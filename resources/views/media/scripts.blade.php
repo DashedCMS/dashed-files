@@ -2435,7 +2435,7 @@
                 const tile = this.items.find((entry) => entry.id === id);
 
                 if (tile) {
-                    ['thumb', 'url', 'width', 'height', 'size', 'mime', 'file_name', 'name'].forEach((key) => {
+                    ['thumb', 'thumb_small', 'animated', 'url', 'width', 'height', 'size', 'mime', 'file_name', 'name'].forEach((key) => {
                         if (item[key] !== undefined) {
                             tile[key] = item[key];
                         }
@@ -3313,6 +3313,15 @@
                 const pages = Number(count) || 0;
 
                 return pages <= 0 ? '' : (pages === 1 ? (this.L.onePage || '1') : fill(this.L.pages || ':count', { count: pages }));
+            },
+
+            // De tegel op een scherm met dubbele dichtheid: de gewone miniatuur (600) in plaats van de beheerminiatuur (320). In de lijst (48 px) is 320 al ruim genoeg.
+            thumbSrcset(item) {
+                if (this.view === 'list' || ! item.thumb_small || ! item.thumb || item.thumb_small === item.thumb) {
+                    return null;
+                }
+
+                return item.thumb_small + ' 1x, ' + item.thumb + ' 2x';
             },
 
             // Op de tegel: de duur van een video of het aantal pagina's van een pdf.

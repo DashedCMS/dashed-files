@@ -95,7 +95,9 @@
                         @else
                             <div class="dashed-media-field-thumb">
                                 @if ($safeUrl($item['thumb']))
-                                    <img src="{{ $safeUrl($item['thumb']) }}" alt="{{ $item['alt'] ?? '' }}" loading="lazy" decoding="async" draggable="false">
+                                    {{-- 72 px: de beheerminiatuur (320) is ruim genoeg, ook op een scherm met dubbele dichtheid. --}}
+                                    @php($small = $safeUrl($item['thumb_small'] ?? null))
+                                    <img src="{{ $small ?: $safeUrl($item['thumb']) }}"@if ($small) width="{{ \Dashed\DashedFiles\Classes\ConversionDefinition::adminThumb()->width }}" height="{{ \Dashed\DashedFiles\Classes\ConversionDefinition::adminThumb()->height }}"@endif alt="{{ $item['alt'] ?? '' }}" loading="lazy" decoding="async" draggable="false">
                                     {{-- Fase 9b: de poster van een video of de miniatuur van een pdf, met een markering. --}}
                                     @if ($item['type'] === 'video')
                                         <span class="dashed-media-field-kind" aria-hidden="true">{!! $icon('heroicon-s-play', 'dashed-media-field-icon') !!}</span>

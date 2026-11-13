@@ -24,7 +24,7 @@ class MediaPrivateFileController
     public const ROUTE = 'media.private';
 
     /** @var array<int, string> wat er op te vragen valt */
-    public const VARIANTS = ['original', 'thumb', 'medium', 'preview', 'source'];
+    public const VARIANTS = ['original', 'thumb', 'admin-thumb', 'medium', 'preview', 'source'];
 
     // Typen die een browser als pagina of script kan uitvoeren: altijd als download.
     private const ACTIVE_TYPES = ['image/svg+xml', 'text/html', 'application/xhtml+xml', 'text/xml', 'application/xml', 'text/javascript', 'application/javascript', 'text/css'];

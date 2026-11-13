@@ -758,7 +758,7 @@ class ConversionPump
      *
      * @return array<int, string>
      */
-    public function missingNames(object $row, bool $onlyCropping = false, bool $evenIfGivenUp = false): array
+    public function missingNames(object $row, bool $onlyCropping = false, bool $evenIfGivenUp = false, bool $withAdminThumb = false): array
     {
         if (! $evenIfGivenUp && $this->skipReason($row, null) !== null) {
             return [];
@@ -767,7 +767,9 @@ class ConversionPump
         $generated = $this->generated($row);
         $names = [];
 
-        foreach (MediaConversions::libraryDefinitions($row->conversions, $this->number($row->focal_x ?? null), $this->number($row->focal_y ?? null)) as $name => $definition) {
+        // De beheerminiatuur alleen op aanvraag (een run met dit item
+        // uitdrukkelijk erin): geen massale nulmeting bij een uitrol.
+        foreach (MediaConversions::libraryDefinitions($row->conversions, $this->number($row->focal_x ?? null), $this->number($row->focal_y ?? null), $withAdminThumb) as $name => $definition) {
             if (empty($generated[$name]) && (! $onlyCropping || $definition->isCropping())) {
                 $names[] = $name;
             }
@@ -1144,8 +1146,8 @@ class ConversionPump
         // Wat nu bij het item hoort, plus de miniatuur en `medium`: die gaan nooit weg.
         $item = MediaItem::withoutGlobalScopes()->find($itemId);
         $keep = array_merge(
-            array_keys(MediaConversions::libraryDefinitions($item?->conversions, $this->number($item?->getAttribute('focal_x')), $this->number($item?->getAttribute('focal_y')))),
-            ['thumb', 'medium', 'responsive'],
+            array_keys(MediaConversions::libraryDefinitions($item?->conversions, $this->number($item?->getAttribute('focal_x')), $this->number($item?->getAttribute('focal_y')), withAdminThumb: true)),
+            ['thumb', 'admin-thumb', 'medium', 'responsive'],
         );
 
         // `medium` is altijd geregistreerd: zijn pad is het sjabloon voor elk ander formaat.
@@ -1201,14 +1203,14 @@ class ConversionPump
 
         switch ($run->type) {
             case self::MISSING:
-                return $this->missingNames($row, evenIfGivenUp: true);
+                return $this->missingNames($row, evenIfGivenUp: true, withAdminThumb: $this->asked($run, $row));
 
             case self::FOCAL:
-                return $this->missingNames($row, onlyCropping: true, evenIfGivenUp: true);
+                return $this->missingNames($row, onlyCropping: true, evenIfGivenUp: true, withAdminThumb: $this->asked($run, $row));
 
             case self::FORCE:
                 $wanted = $run->names();
-                $names = array_keys(MediaConversions::libraryDefinitions($row->conversions, $focalX, $focalY));
+                $names = array_keys(MediaConversions::libraryDefinitions($row->conversions, $focalX, $focalY, withAdminThumb: $this->asked($run, $row) || $wanted !== []));
 
                 return $wanted === []
                     ? $names
@@ -1242,6 +1244,12 @@ class ConversionPump
         }
 
         return [];
+    }
+
+    /** Of deze run dit item uitdrukkelijk noemt: alleen dan maakt hij ook de beheerminiatuur. */
+    protected function asked(MediaConversionRun $run, object $row): bool
+    {
+        return in_array((int) $row->id, $run->itemIds(), true);
     }
 
     /**

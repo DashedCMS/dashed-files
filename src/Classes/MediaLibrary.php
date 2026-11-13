@@ -420,6 +420,11 @@ class MediaLibrary
                 app(\Dashed\DashedFiles\Classes\Preview\MediaPreviews::class)->queue((int) $item->getKey());
             }
 
+            // Een gif: de statische poster voor het beheer, ook uit de wachtrij.
+            if (\Dashed\DashedFiles\Classes\Preview\GifPoster::isGif($mime)) {
+                \Dashed\DashedFiles\Classes\Preview\GifPoster::queue((int) $item->getKey());
+            }
+
             return new IngestResult($item, false, $checksum);
         } finally {
             $this->cleanUp($file, $prepared);
@@ -712,6 +717,10 @@ class MediaLibrary
                 $previews->queue($id);
             }
 
+            if (\Dashed\DashedFiles\Classes\Preview\GifPoster::isGif($prepared->mime)) {
+                \Dashed\DashedFiles\Classes\Preview\GifPoster::queue($id);
+            }
+
             // Wie dit item als poster gebruikt toont nu een oud adres.
             $previews->invalidateUsersOfPoster($id);
 
@@ -842,7 +851,7 @@ class MediaLibrary
         // CDN hebben ze nog); de opruimronde haalt ze na de bewaartermijn weg.
         $stale = (array) $file->getCustomProperty('stale_conversions', []);
 
-        foreach (MediaConversions::libraryDefinitions($item->conversions, $oldX, $oldY) as $name => $definition) {
+        foreach (MediaConversions::libraryDefinitions($item->conversions, $oldX, $oldY, withAdminThumb: true) as $name => $definition) {
             if ($definition->isCropping() && $definition->withFocal($x, $y)->name !== $name && $file->hasGeneratedConversion($name)) {
                 // Tot op de microseconde: de terugval op het leespad kiest
                 // de laatst afgedankte uitsnede, ook bij twee wijzigingen kort na elkaar.
@@ -1929,9 +1938,13 @@ class MediaLibrary
         }
 
         $focal = self::usesOwnEngine() ? $item->focalPoint() : null;
-        $names = $variant === 'thumb'
-            ? array_unique([MediaConversions::thumbName($focal['x'] ?? null, $focal['y'] ?? null), 'thumb', 'medium'])
-            : ['medium'];
+        $thumbs = [MediaConversions::thumbName($focal['x'] ?? null, $focal['y'] ?? null), 'thumb', 'medium'];
+        $names = match ($variant) {
+            'thumb' => array_unique($thumbs),
+            // De beheerminiatuur, dan de terugval van de gewone.
+            'admin-thumb' => array_unique(array_merge([MediaConversions::adminThumbName($focal['x'] ?? null, $focal['y'] ?? null), ConversionDefinition::ADMIN_THUMB], $thumbs)),
+            default => ['medium'],
+        };
 
         foreach ($names as $name) {
             if (! $file->hasGeneratedConversion($name)) {
