@@ -86,6 +86,12 @@ return [
         // bestand staat als overgeslagen in de run en in de doctor. 0 = geen grens.
         'max_megapixels' => 60,
 
+        // Laat de beeldoptimalisatie van Spatie (cwebp, pngquant, ...) na het
+        // maken van een formaat draaien. Standaard uit: het is veel trager en
+        // levert voor webp grotere bestanden op. Alleen zetten als een server
+        // met zijn eigen optimizers aantoonbaar kleinere bestanden geeft.
+        'optimize' => env('DASHED_FILES_OPTIMIZE_CONVERSIONS', false),
+
         // Een eigen wachtrij voor AVIF-runs (AVIF coderen is traag). Leeg:
         // dezelfde wachtrij als de andere runs (`ingest.queue`).
         'avif_queue' => env('DASHED_FILES_AVIF_QUEUE'),

@@ -140,6 +140,15 @@ class MediaConversions
     {
         $conversion = $item->addMediaConversion($definition->name)->format($definition->format);
 
+        // Spatie zet standaard de beeldoptimalisatie aan. Waar `cwebp` op de
+        // server staat draait die per webp-formaat `-m 6 -pass 10 -q 90`: 3 tot
+        // 25 keer trager en het bestand wordt 6 tot 21% groter. De config
+        // `media-library.image_optimizers => []` zet dat niet uit, alleen dit.
+        // De kwaliteit verandert niet: die komt van de eerste webp-pass.
+        if (! config('dashed-files.conversions.optimize', false)) {
+            $conversion->nonOptimized();
+        }
+
         match ($definition->mode) {
             ConversionDefinition::MODE_WIDTH => $conversion->width($definition->width),
             ConversionDefinition::MODE_HEIGHT => $conversion->height($definition->height),
