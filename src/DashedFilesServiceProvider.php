@@ -422,6 +422,8 @@ MARKDOWN,
         $attribute($ecommerce . 'ProductExtraOption', 'image');
         $attribute($ecommerce . 'PaymentMethod', 'image');
         $attribute($ecommerce . 'OrderLog', 'images', 'ids');
+        // Foto's bij een offerteregel: staan in de PDF en op de offertepagina.
+        $attribute($ecommerce . 'QuoteLine', 'images', 'ids');
         $attribute($articles . 'Article', 'image');
         $attribute($articles . 'ArticleAuthor', 'image');
         $attribute($vacancies . 'Vacancy', 'image');
