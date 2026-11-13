@@ -3,6 +3,8 @@
 namespace Dashed\DashedFiles\Classes\Browse;
 
 use Throwable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -28,6 +30,9 @@ final class BrowseSchema
 
     /** @var array<string, true> een "ja" geldt voor de rest van het proces */
     private static array $known = [];
+
+    /** Of de gedeelde cache al in $known is gelezen (een keer per proces en verzoek). */
+    private static bool $loaded = false;
 
     public static function hasTrash(): bool
     {
@@ -126,7 +131,18 @@ final class BrowseSchema
 
     public static function forget(): void
     {
+        self::flushMemory();
+        rescue(fn () => Cache::forget(self::cacheKey()), report: false);
+    }
+
+    /**
+     * Alleen het geheugen van dit proces leeg, de gedeelde cache blijft: wat
+     * een nieuw verzoek ziet. (forget() is voor "het schema is veranderd".)
+     */
+    public static function flushMemory(): void
+    {
         self::$known = [];
+        self::$loaded = false;
 
         if (app()->bound('request')) {
             request()->attributes->remove(self::MEMO);
@@ -156,6 +172,19 @@ final class BrowseSchema
             return true;
         }
 
+        // Een "ja" staat ook in de gedeelde cache: zonder dat deed elk
+        // Livewire-verzoek tien tot achttien schemavragen aan information_schema.
+        // Een "nee" nooit: een kolom die nog moet komen (deploy voor migrate)
+        // moet zichtbaar worden zodra hij er is.
+        if (! self::$loaded) {
+            self::$loaded = true;
+            self::$known = array_merge(self::$known, self::readCache());
+        }
+
+        if (isset(self::$known[$name])) {
+            return true;
+        }
+
         $request = app()->bound('request') ? request() : null;
         $memo = $request ? (array) $request->attributes->get(self::MEMO, []) : [];
 
@@ -164,7 +193,10 @@ final class BrowseSchema
         }
 
         if (self::check($callback)) {
-            return self::$known[$name] = true;
+            self::$known[$name] = true;
+            self::writeCache();
+
+            return true;
         }
 
         if ($request) {
@@ -173,6 +205,27 @@ final class BrowseSchema
         }
 
         return false;
+    }
+
+    /** De sleutel draagt de databasenaam: een andere verbinding heeft een ander schema. */
+    private static function cacheKey(): string
+    {
+        $database = rescue(fn () => (string) DB::connection()->getDatabaseName(), '', false);
+
+        return 'dashed-files.browse-schema.' . md5(config('database.default') . '|' . $database);
+    }
+
+    /** @return array<string, true> */
+    private static function readCache(): array
+    {
+        $stored = rescue(fn () => Cache::get(self::cacheKey()), [], false);
+
+        return is_array($stored) ? array_filter($stored) : [];
+    }
+
+    private static function writeCache(): void
+    {
+        rescue(fn () => Cache::forever(self::cacheKey(), self::$known), report: false);
     }
 
     private static function check(callable $callback): bool
