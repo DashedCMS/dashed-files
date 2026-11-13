@@ -3,6 +3,7 @@
 namespace Dashed\DashedFiles;
 
 use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Queue;
 use Spatie\LaravelPackageTools\Package;
 use Filament\Support\Facades\FilamentView;
@@ -116,6 +117,14 @@ MARKDOWN,
         $this->app->singleton(\Dashed\DashedFiles\Classes\MediaLibrary::class);
         $this->app->singleton(\Dashed\DashedFiles\Classes\Sources\MediaSourceRegistry::class);
         self::registreerMediabronnen();
+
+        // Een pagina laadt de media van zijn blokken in één cacheronde voor.
+        // Een view composer op de component van dashed-core, zodat dashed-core
+        // zelf niets hoeft te weten; de nesting (een globaal blok) loopt langs
+        // dezelfde component en voor elk niveau komt er één ronde bij.
+        View::composer('dashed-core::components.content-blocks', function ($view) {
+            rescue(fn () => app(\Dashed\DashedFiles\Classes\MediaHelper::class)->preloadContentMedia($view->getData()['content'] ?? null), report: false);
+        });
 
         // De schijf voor privé-bestanden, als de applicatie hem niet zelf definieert.
         \Dashed\DashedFiles\Classes\Access\MediaStorage::register();

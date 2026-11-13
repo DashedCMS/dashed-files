@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Classes\MediaLibrary;
 use Dashed\DashedFiles\Classes\Access\MediaRights;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Opent een privé-bestand in het beheer. De link is ondertekend en kort
@@ -32,7 +32,7 @@ class MediaPrivateFileController
     // Wat een browser veilig zelf kan tonen.
     private const INLINE_PREFIXES = ['image/', 'video/', 'audio/'];
 
-    public function __invoke(Request $request, int|string $item, string $variant = 'original'): StreamedResponse
+    public function __invoke(Request $request, int|string $item, string $variant = 'original'): Response
     {
         abort_unless($request->hasValidSignature(), 403);
         abort_unless(MediaLibrary::usesOwnEngine() && MediaRights::check('view'), 403);
@@ -43,6 +43,20 @@ class MediaPrivateFileController
         $file = $model ? app(MediaLibrary::class)->privateFile($model, $variant) : null;
 
         abort_unless($file !== null, 404);
+
+        // Voorwaardelijk: wie het bestand al heeft en de ETag of datum meestuurt
+        // krijgt een 304, zonder dat het bestand van de schijf gelezen wordt.
+        // Pas na de handtekening en het recht hierboven, nooit ervoor.
+        $cache = new Response('', 200, ['Cache-Control' => $this->cacheControl($request), 'X-Robots-Tag' => 'noindex']);
+        $cache->setEtag((string) ($file['etag'] ?? md5($file['disk'] . '|' . $file['path'])));
+
+        if (! empty($file['modified'])) {
+            $cache->setLastModified(\DateTimeImmutable::createFromFormat('U', (string) $file['modified']) ?: null);
+        }
+
+        if ($cache->isNotModified($request)) {
+            return $cache;
+        }
 
         $disk = Storage::disk($file['disk']);
         $size = $file['size'] ?? rescue(fn () => (int) $disk->size($file['path']), null, false);
@@ -82,9 +96,14 @@ class MediaPrivateFileController
         $headers = [
             'Content-Type' => $mime !== '' ? $mime : 'application/octet-stream',
             'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'private, no-store',
+            'Cache-Control' => $this->cacheControl($request),
+            'ETag' => $cache->headers->get('ETag'),
             'X-Robots-Tag' => 'noindex',
         ];
+
+        if ($cache->headers->has('Last-Modified')) {
+            $headers['Last-Modified'] = $cache->headers->get('Last-Modified');
+        }
 
         // Ook als een browser het toch opent: geen script, geen formulier,
         // geen eigen herkomst. Niet voor een pdf die getoond wordt: de
@@ -139,6 +158,19 @@ class MediaPrivateFileController
         ));
 
         return $response;
+    }
+
+    /**
+     * Nooit `public`: dit bestand mag alleen naar wie de handtekening en het
+     * recht heeft, dus geen gedeelde cache of CDN. Een browser mag het wel
+     * houden zolang de handtekening van deze link geldig is: daarna had hij
+     * het bestand toch niet meer kunnen opvragen.
+     */
+    private function cacheControl(Request $request): string
+    {
+        $left = max(0, (int) $request->query('expires', 0) - time());
+
+        return $left > 0 ? "private, max-age={$left}" : 'private, no-cache';
     }
 
     /**

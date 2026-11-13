@@ -68,6 +68,28 @@ return [
         'queue' => env('DASHED_FILES_INGEST_QUEUE'),
     ],
 
+    // De `Cache-Control` die een NIEUW mediabestand op een objectopslag krijgt.
+    // Een bestaand object houdt zijn header tot het opnieuw wordt geschreven.
+    // Immutable alleen voor een origineel: dat pad krijgt nooit andere bytes
+    // (een vervanging of bewerking maakt een nieuwe map). Een formaat, een
+    // responsive beeld en een svg kunnen op hetzelfde pad opnieuw geschreven
+    // worden en krijgen een kortere termijn met must-revalidate. Een sleutel
+    // met een lege waarde zet dat onderdeel uit: dan geldt
+    // `media-library.remote.extra_headers`.
+    'cache' => [
+        'original' => 'public, max-age=31536000, immutable',
+        'conversion' => 'public, max-age=604800, must-revalidate',
+    ],
+
+    // Laadt de media van een pagina in één cacheronde voor, zodra de
+    // content-blocks-component rendert. Zet uit om terug te vallen op één
+    // cacheaanvraag per afbeelding; de uitgeleverde adressen veranderen niet.
+    'preload_content_media' => true,
+
+    // Welke formaten er worden voorgeladen. Elk formaat is één cacheronde
+    // en, voor wat nog niet in de cache staat, één query.
+    'preload_conversions' => ['medium'],
+
     'conversions' => [
         // Dwingt AVIF aan of uit, boven de instelling `media_avif_enabled`
         // in de database (standaard uit). Leeg laten volgt de instelling.

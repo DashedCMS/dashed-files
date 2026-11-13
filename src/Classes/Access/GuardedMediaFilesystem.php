@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Dashed\DashedFiles\Models\MediaItem;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
+use Dashed\DashedFiles\Classes\MediaCacheControl;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibrary\Support\RemoteFile;
 
 /**
  * De schrijfkant van Spatie, met één controle ervoor: een bestand van een
@@ -33,7 +35,33 @@ class GuardedMediaFilesystem extends Filesystem
     {
         self::assertSameDisk($media);
 
-        parent::copyToMediaLibrary($pathToFile, $media, $type, $targetFileName);
+        $this->withCacheControl($media, $type, fn () => parent::copyToMediaLibrary($pathToFile, $media, $type, $targetFileName));
+    }
+
+    public function copyToMediaLibraryFromRemote(RemoteFile $file, Media $media, ?string $type = null, ?string $targetFileName = null): void
+    {
+        $this->withCacheControl($media, $type, fn () => parent::copyToMediaLibraryFromRemote($file, $media, $type, $targetFileName));
+    }
+
+    /**
+     * Geeft het bestand de `Cache-Control` van `MediaCacheControl` mee. Een
+     * header die het project zelf met addCustomRemoteHeaders() zette, of die
+     * op de mediarij staat, gaat voor: Spatie voegt die er later overheen.
+     */
+    private function withCacheControl(Media $media, ?string $type, \Closure $write): void
+    {
+        $previous = $this->customRemoteHeaders;
+        $cache = MediaCacheControl::for($media, $type);
+
+        if ($cache !== null) {
+            $this->customRemoteHeaders = array_merge(['CacheControl' => $cache], $previous);
+        }
+
+        try {
+            $write();
+        } finally {
+            $this->customRemoteHeaders = $previous;
+        }
     }
 
     public static function assertSameDisk(Media $media): void

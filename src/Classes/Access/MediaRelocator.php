@@ -436,6 +436,11 @@ final class MediaRelocator
                     $options['ContentType'] = $mime;
                 }
 
+                // Naar de publieke schijf: dezelfde header als een nieuw bestand krijgt. Naar privé niets.
+                if (! $toPrivate && ($cache = \Dashed\DashedFiles\Classes\MediaCacheControl::forPath($path, $path === $main ? $mime : '')) !== null) {
+                    $options['CacheControl'] = $cache;
+                }
+
                 if ($target->writeStream($path, $stream, $options) === false) {
                     throw new RuntimeException("Could not write [{$path}].");
                 }

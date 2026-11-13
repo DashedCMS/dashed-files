@@ -97,7 +97,7 @@ class SvgBacklog
 
         try {
             // Het type mee (anders raadt een objectopslag het uit de inhoud) en de zichtbaarheid die het bestand al had.
-            $disk->put($path, $clean, ['ContentType' => 'image/svg+xml', 'visibility' => $this->visibility($disk, $path)]);
+            $disk->put($path, $clean, \Dashed\DashedFiles\Classes\MediaCacheControl::svgWriteOptions($media->disk, $this->visibility($disk, $path)));
         } catch (Throwable $exception) {
             report($exception);
 

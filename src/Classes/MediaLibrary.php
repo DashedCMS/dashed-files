@@ -1886,13 +1886,18 @@ class MediaLibrary
         }
 
         $clean = fn (?string $name) => str_replace(['/', '\\', "\0", "\r", "\n", '%'], '-', (string) $name) ?: 'bestand';
+        // Voor de voorwaardelijke aanvraag van de route (ETag en Last-Modified), uit de rij en niet uit het bestand.
+        $stamp = fn (Media $media, string $path, ?int $size) => [
+            'modified' => $media->updated_at?->getTimestamp(),
+            'etag' => md5(implode('|', [$media->getKey(), $media->uuid, $variant, $path, $size ?? '', $media->updated_at?->getTimestamp() ?? ''])),
+        ];
         $describe = fn (Media $media) => [
             'disk' => (string) $media->disk,
             'path' => $media->getPathRelativeToRoot(),
             'mime' => (string) $media->mime_type,
             'name' => $clean($media->file_name),
             'size' => is_numeric($media->size) ? (int) $media->size : null,
-        ];
+        ] + $stamp($media, $media->getPathRelativeToRoot(), is_numeric($media->size) ? (int) $media->size : null);
 
         if ($variant === 'preview') {
             $preview = $item->preview();
@@ -1942,7 +1947,7 @@ class MediaLibrary
                     'mime' => self::mimeFromExtension($path),
                     'name' => $clean(basename($path)),
                     'size' => null,
-                ];
+                ] + $stamp($file, $path, null);
             }
         }
 
