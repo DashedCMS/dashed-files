@@ -5,12 +5,12 @@ namespace Dashed\DashedFiles\Classes\Browse;
 use Throwable;
 use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Classes\MediaLibrary;
-use Dashed\DashedFiles\Classes\MediaPickerFileCache;
 use Dashed\DashedFiles\Classes\MediaConversions;
 use Dashed\DashedFiles\Classes\Preview\GifPoster;
 use Dashed\DashedFiles\Classes\ConversionDefinition;
-use Dashed\DashedFiles\Classes\Conversions\ConversionPump;
+use Dashed\DashedFiles\Classes\MediaPickerFileCache;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Dashed\DashedFiles\Classes\Conversions\ConversionPump;
 
 /**
  * Eén item zoals de beheerpagina en de kiezer het krijgen. Leest alleen wat

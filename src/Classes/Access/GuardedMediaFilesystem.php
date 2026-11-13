@@ -5,11 +5,11 @@ namespace Dashed\DashedFiles\Classes\Access;
 use RuntimeException;
 use Illuminate\Support\Facades\DB;
 use Dashed\DashedFiles\Models\MediaItem;
+use Spatie\MediaLibrary\Support\RemoteFile;
+use Dashed\DashedFiles\Classes\MediaCacheControl;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;
-use Dashed\DashedFiles\Classes\MediaCacheControl;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Spatie\MediaLibrary\Support\RemoteFile;
 
 /**
  * De schrijfkant van Spatie, met één controle ervoor: een bestand van een

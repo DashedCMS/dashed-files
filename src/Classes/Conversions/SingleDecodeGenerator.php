@@ -8,12 +8,12 @@ use Throwable;
 use Spatie\Image\Size;
 use Spatie\Image\Enums\Fit;
 use Spatie\Image\Enums\Constraint;
-use Spatie\Image\Enums\AlignPosition;
 use Spatie\Image\Drivers\Gd\GdDriver;
+use Spatie\Image\Enums\AlignPosition;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;
-use Spatie\MediaLibrary\Conversions\ConversionCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibrary\Conversions\ConversionCollection;
 use Spatie\MediaLibrary\Conversions\Events\ConversionWillStartEvent;
 use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
 

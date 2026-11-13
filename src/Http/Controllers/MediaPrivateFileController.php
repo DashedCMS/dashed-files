@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Dashed\DashedFiles\Models\MediaItem;
 use Dashed\DashedFiles\Classes\MediaLibrary;
-use Dashed\DashedFiles\Classes\Access\MediaRights;
 use Symfony\Component\HttpFoundation\Response;
+use Dashed\DashedFiles\Classes\Access\MediaRights;
 
 /**
  * Opent een privé-bestand in het beheer. De link is ondertekend en kort
