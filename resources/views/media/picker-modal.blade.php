@@ -1,9 +1,9 @@
 {{--
-    Het keuzevenster van de mediabibliotheek. Dicht is dit alleen de schil
-    van het venster: de lijst komt er pas in nadat de browser openPicker()
-    heeft aangeroepen. Stijl en script staan hier bewust niet: die zet de
-    render hook (media.picker-host) één keer in de pagina, buiten dit
-    component, zodat een render ze niet telkens opnieuw meestuurt.
+    Het keuzevenster van de mediabibliotheek. Het component rendert alleen
+    deze schil, en rendert niet opnieuw bij openen of sluiten: de browser
+    zet de lijst (media.browser, één keer opgehaald via openPicker()) zelf in
+    de houder hieronder, onder wire:ignore. Stijl en script staan hier bewust
+    niet: die zet de render hook (media.picker-host) één keer in de pagina.
 --}}
 <div
     class="dashed-media-picker-host"
@@ -12,6 +12,7 @@
     data-browser-posters="{{ \Dashed\DashedFiles\Classes\Preview\MediaPreviews::browserMakesPosters() ? '1' : '0' }}"
     x-data="{}"
     x-init="window.dashedMedia && window.dashedMedia.registerHost && window.dashedMedia.registerHost($el, $wire)"
+    x-on:dashed-media-ready.window="window.dashedMedia.registerHost($el, $wire)"
     x-on:dashed-media-picked="window.dashedMedia.hostPicked($event)"
     x-on:dashed-media-pick-cancel="window.dashedMedia.hostClose()"
     x-on:modal-closed.window="window.dashedMedia.hostClosed($event)"
@@ -23,14 +24,10 @@
         :autofocus="false"
         class="dashed-media-picker-modal"
     >
-        @if ($open)
-            <div wire:key="dashed-media-pick-{{ $opened }}" class="dashed-media-pick">
-                @include('dashed-files::media.browser', ['mediaConfig' => $this->pickerBrowserConfig(), 'mediaAssets' => false])
-            </div>
-        @else
-            <div wire:key="dashed-media-pick-wait" class="dashed-media-picker-wait" aria-hidden="true">
+        <div wire:ignore class="dashed-media-pick" data-dashed-media-pick-mount>
+            <div class="dashed-media-picker-wait" aria-hidden="true">
                 <span class="dashed-media-spin"></span> {{ __('Bezig met laden...') }}
             </div>
-        @endif
+        </div>
     </x-filament::modal>
 </div>

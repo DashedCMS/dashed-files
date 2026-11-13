@@ -17,12 +17,11 @@
         : '';
 @endphp
 
-{{-- Het keuzevenster geeft mediaAssets = false mee: daar staan stijl en script al via de render hook in de pagina. --}}
-@if ($mediaAssets ?? true)
-    @include('dashed-files::media.styles')
-    @include('dashed-files::media.scripts')
-    @php(\Dashed\DashedFiles\Classes\MediaAssets::markRendered())
-@endif
+{{-- Stijl en script zijn statische bestanden (MediaAssets); de render hook aan het eind van de body zet ze in de pagina. --}}
+@php(\Dashed\DashedFiles\Classes\MediaAssets::markNeeded())
+
+{{-- Zonder inspringing en lege regels: dit is de grootste view van het pakket (MediaHtml). --}}
+@php(ob_start())
 
 <div
     wire:ignore
@@ -1188,3 +1187,4 @@
         </div>
     </template>
 </div>
+{!! \Dashed\DashedFiles\Classes\MediaHtml::compact((string) ob_get_clean()) !!}

@@ -19,7 +19,9 @@
     $full = $multiple ? ($max !== null && count($items) >= $max) : (count($items) > 0 || $external !== null);
     $openable = $isDownloadable();
     $fieldKey = $getKey();
-    $icon = fn (string $name, string $class = 'dashed-media-field-icon') => rescue(fn () => svg($name, $class, ['aria-hidden' => 'true'])->toHtml(), '', false);
+    // Een verwijzing naar de svg-sprite die de render hook één keer in de pagina zet (MediaIcons).
+    $icon = fn (string $name, string $class = 'dashed-media-field-icon') => \Dashed\DashedFiles\Classes\MediaIcons::use($name, $class);
+    \Dashed\DashedFiles\Classes\MediaAssets::markNeeded();
     $safeUrl = fn (?string $url): ?string => is_string($url) && preg_match('#^(https?://|/)#i', $url) ? $url : null;
     $api = 'window.dashedMedia.field';
     $label = $getLabel();
@@ -27,6 +29,7 @@
 @endphp
 
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
+    @php(ob_start())
     {{-- De opmaak staat niet hier maar in de render hook (media.picker-host): een stijlblok in het veld verdwijnt bij een gedeeltelijke render uit de pagina. --}}
     <div
         {{ $getExtraAttributeBag()->class(['dashed-media-field', 'dashed-media-field--multiple' => $multiple, 'dashed-media-field--disabled' => $disabled]) }}
@@ -39,6 +42,7 @@
         data-dashed-media-field="{{ $getBrowserConfig() }}"
         x-data="{ ready: false, over: false, alt: null }"
         x-init="ready = !! (window.dashedMedia && window.dashedMedia.pick && window.dashedMedia.field)"
+        x-on:dashed-media-ready.window="ready = true"
         x-bind:class="{ 'dashed-media-field--over': over }"
         @unless ($disabled)
             x-on:dragover="over = ready && {{ $api }}.fileOver($event, $el)"
@@ -197,4 +201,6 @@
             <p class="dashed-media-field-status" data-dashed-media-status role="status" aria-live="polite"></p>
         @endif
     </div>
+    {{-- Zonder inspringing en lege regels: elk veld op de pagina telt mee in de HTML. --}}
+    {!! \Dashed\DashedFiles\Classes\MediaHtml::compact((string) ob_get_clean()) !!}
 </x-dynamic-component>

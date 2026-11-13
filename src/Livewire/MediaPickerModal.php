@@ -15,9 +15,12 @@ use Dashed\DashedFiles\Livewire\Concerns\ReceivesMediaUploads;
 /**
  * Het keuzevenster van de mediabibliotheek, één per paneelpagina. Dicht is
  * het een lege schil zonder query's; de browser opent het met openPicker()
- * en krijgt dan de lijst-partial in kies-modus. Wat er gekozen wordt gaat
- * niet via dit component terug maar rechtstreeks naar het veld
- * (MediaField::applySelection), dat alles opnieuw controleert.
+ * en krijgt dan de instellingen voor de lijst in kies-modus terug. De
+ * markup van die lijst (ruim 90 kB) wordt niet bij elke opening opnieuw
+ * gerenderd: openPicker() levert hem de eerste keer als tekst mee, en de
+ * browser bewaart hem en zet er per opening alleen de instellingen in.
+ * Wat er gekozen wordt gaat niet via dit component terug maar rechtstreeks
+ * naar het veld (MediaField::applySelection), dat alles opnieuw controleert.
  */
 class MediaPickerModal extends Component
 {
@@ -45,9 +48,13 @@ class MediaPickerModal extends Component
     public int $opened = 0;
 
     /**
-     * @param  array<string, mixed>  $request  accept, multiple, max, folder, folderPath, selected, remember, sources, allowPrivate, sites, signature
-     * @return array{ok: bool}
+     * Zonder Livewire-render: de staat (open, pick) gaat mee in het antwoord
+     * en de lijst komt als data terug, niet als nieuwe HTML van het hele venster.
+     *
+     * @param  array<string, mixed>  $request  accept, multiple, max, folder, folderPath, selected, remember, sources, allowPrivate, sites, signature, template
+     * @return array{ok: bool, config: array<string, mixed>, html?: string}
      */
+    #[Renderless]
     public function openPicker(array $request = []): array
     {
         $this->authorizeMedia('view');
@@ -104,13 +111,22 @@ class MediaPickerModal extends Component
         ];
 
         $this->open = true;
-        // Elke keer een nieuw venster: de lijst-partial staat onder
-        // wire:ignore en zou anders de instellingen van het vorige veld houden.
+        // Elke opening is een nieuw venster: de browser bouwt de lijst met
+        // deze instellingen opnieuw op en houdt niets van het vorige veld.
         $this->opened++;
 
-        return ['ok' => true];
+        $result = ['ok' => true, 'config' => $this->pickerBrowserConfig()];
+
+        // De markup is voor iedereen gelijk (de instellingen zitten er niet in):
+        // alleen de eerste opening na het laden van de pagina vraagt erom.
+        if (! ($request['template'] ?? false)) {
+            $result['html'] = view('dashed-files::media.browser', ['mediaConfig' => []])->render();
+        }
+
+        return $result;
     }
 
+    #[Renderless]
     public function closePicker(): void
     {
         $this->open = false;
