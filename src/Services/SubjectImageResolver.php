@@ -4,6 +4,9 @@ namespace Dashed\DashedFiles\Services;
 
 use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Database\Eloquent\Model;
+use Dashed\DashedFiles\Models\MediaItem;
+use Dashed\DashedFiles\Classes\MediaPrivacy;
+use Dashed\DashedFiles\Classes\Access\MediaStorage;
 
 class SubjectImageResolver
 {
@@ -61,7 +64,14 @@ class SubjectImageResolver
             return [];
         }
 
+        // Een privé of beschermd item van de mediabibliotheek, of wat er ook
+        // op de privé-schijf staat, gaat niet als adres naar een externe dienst.
+        if ($model instanceof MediaItem && rescue(fn () => MediaPrivacy::isProtected($model), true, false)) {
+            return [];
+        }
+
         return $model->getMedia()
+            ->reject(fn ($media) => MediaStorage::isPrivateDisk($media->disk))
             ->map(fn ($media) => $media->getFullUrl())
             ->filter()
             ->values()
@@ -81,8 +91,14 @@ class SubjectImageResolver
             }
         }
 
+        // Een geplakt adres mag, behalve als het naar een beschermd bestand
+        // van de eigen bibliotheek wijst.
         if (is_string($value) && ! ctype_digit($value)) {
-            return $value;
+            return MediaPrivacy::isProtectedUrl($value) ? null : $value;
+        }
+
+        if ($this->isProtectedMediaId($value)) {
+            return null;
         }
 
         if (function_exists('mediaHelper')) {
@@ -98,5 +114,23 @@ class SubjectImageResolver
         }
 
         return null;
+    }
+
+    /**
+     * Een media-id waarvan MediaPrivacy zegt dat hij niet naar een externe
+     * AI mag (privé, chatbijlage, map chat of orders). Kan de toets niet
+     * gedaan worden, dan geldt het item als beschermd.
+     */
+    private function isProtectedMediaId(mixed $value): bool
+    {
+        if (! is_numeric($value)) {
+            return false;
+        }
+
+        return (bool) rescue(function () use ($value) {
+            $item = MediaItem::withoutGlobalScopes()->find((int) $value);
+
+            return $item !== null && MediaPrivacy::isProtected($item);
+        }, true, false);
     }
 }

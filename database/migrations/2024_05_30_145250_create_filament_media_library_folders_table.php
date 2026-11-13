@@ -25,13 +25,6 @@ return new class () extends Migration {
 
     public function down(): void
     {
-        if (Schema::hasColumn('filament_media_library', 'folder_id')) {
-            Schema::table('filament_media_library', function (Blueprint $table) {
-                $table->dropForeign(['folder_id']);
-                $table->dropColumn('folder_id');
-            });
-        }
-
-        Schema::dropIfExists('filament_media_library_folders');
+        // Bewust leeg: een migrate:rollback mag op geen enkele site de mediabibliotheek wissen.
     }
 };

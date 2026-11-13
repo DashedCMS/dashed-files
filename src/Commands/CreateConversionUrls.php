@@ -3,7 +3,8 @@
 namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use Dashed\DashedFiles\Models\MediaItem;
+use Dashed\DashedFiles\Classes\MediaLibrary;
 
 class CreateConversionUrls extends Command
 {
@@ -18,7 +19,7 @@ class CreateConversionUrls extends Command
         $this->info('Media conversion cache builder');
         $this->line('Chunk size: ' . $chunkSize);
 
-        $query = MediaLibraryItem::query();
+        $query = MediaItem::query();
 
         $total = $query->count();
 
@@ -55,6 +56,10 @@ class CreateConversionUrls extends Command
 
                     $bar->advance();
                 }
+
+                // getSingleMedia() onthoudt elk resultaat voor de rest van
+                // het proces; over een hele bibliotheek loopt dat op.
+                app(MediaLibrary::class)->flushRuntime();
             });
 
         $bar->finish();

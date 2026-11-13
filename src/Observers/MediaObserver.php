@@ -2,10 +2,10 @@
 
 namespace Dashed\DashedFiles\Observers;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use Dashed\DashedFiles\Models\MediaItem;
+use Dashed\DashedFiles\Classes\MediaLibrary;
 use Dashed\DashedFiles\Exceptions\DisallowedFileTypeException;
 
 class MediaObserver
@@ -55,17 +55,45 @@ class MediaObserver
     public function created(Media $media)
     {
         $this->storeOriginalDimensions($media);
+
+        // Het bestand staat nu nog niet op de schijf: alleen de attributen van de rij.
+        $this->syncMirror($media);
     }
 
     public function updated(Media $media)
     {
-        $filamentMedia = MediaLibraryItem::find($media->model_id);
-        if ($filamentMedia) {
-            $filamentMedia->conversion_urls = null;
-            $filamentMedia->save();
-            foreach (json_decode($filamentMedia->conversions ?: '{}', true) as $conversion) {
-                Cache::forget('media-library-media-' . $filamentMedia->id . '-' . mediaHelper()->getConversionName($conversion));
+        // Via fromMedia() en niet op model_id alleen: een mediarij van een
+        // ander model met hetzelfde id mag de cache van dit item niet legen.
+        $item = MediaItem::fromMedia($media);
+
+        if (! $item) {
+            return;
+        }
+
+        // De pomp maakt van één item een rij formaten achter elkaar en leegt
+        // de cache zelf, één keer per item in plaats van één keer per formaat.
+        if (! \Dashed\DashedFiles\Classes\Conversions\ConversionPump::isHandling($item->getKey())) {
+            app(MediaLibrary::class)->invalidate($item);
+        }
+
+        // Een klaar formaat raakt alleen generated_conversions; daar staat niets van in de spiegel.
+        // Alleen het huidige bestand: het bewaarde bestand van een vervangen
+        // item (library-replaced) mag de spiegelkolommen niet terugzetten.
+        if ($media->collection_name === MediaItem::COLLECTION && $media->wasChanged(['file_name', 'mime_type', 'size', 'custom_properties'])) {
+            app(MediaLibrary::class)->syncMirror($item, $media);
+        }
+    }
+
+    protected function syncMirror(Media $media): void
+    {
+        try {
+            // Een bestand dat nog in `library-incoming` staat is nog niet het bestand van het item.
+            if ($media->collection_name === MediaItem::COLLECTION && ($item = MediaItem::fromMedia($media))) {
+                app(MediaLibrary::class)->syncMirror($item, $media);
             }
+        } catch (\Throwable $e) {
+            // Don't break upload flow
+            report($e);
         }
     }
 

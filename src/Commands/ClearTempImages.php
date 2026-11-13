@@ -13,8 +13,8 @@ class ClearTempImages extends Command
     public $description = 'Clear temp images';
 
     /**
-     * Een conversie die nu draait werkt in zo'n map; wat jonger is dan dit
-     * blijft dus staan.
+     * Een conversie of een inname die nu draait werkt in zo'n map; wat jonger
+     * is dan dit blijft dus staan.
      */
     private const MAX_AGE_HOURS = 6;
 
@@ -39,9 +39,20 @@ class ClearTempImages extends Command
      */
     private static function expiredEntries(): array
     {
-        // Dezelfde map als Spatie\MediaLibrary\Support\TemporaryDirectory.
-        $directory = config('media-library.temporary_directory_path') ?? storage_path('media-library/temp');
+        return array_merge(
+            // Dezelfde map als Spatie\MediaLibrary\Support\TemporaryDirectory.
+            self::expiredIn(config('media-library.temporary_directory_path') ?? storage_path('media-library/temp')),
+            // Waar de inname en de downloader hun tijdelijke bestand zetten. Een
+            // proces dat tussen ophalen en innemen sneuvelt laat het daar staan.
+            self::expiredIn(storage_path('app/media-ingest')),
+        );
+    }
 
+    /**
+     * @return array<int, string>
+     */
+    private static function expiredIn(string $directory): array
+    {
         if (! is_dir($directory)) {
             return [];
         }

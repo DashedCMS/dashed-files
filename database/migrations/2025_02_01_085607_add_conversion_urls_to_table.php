@@ -22,8 +22,6 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::table('filament_media', function (Blueprint $table) {
-            //
-        });
+        // Bewust leeg: zonder deze kolom geeft elk leespad van de mediabibliotheek een SQL-fout.
     }
 };

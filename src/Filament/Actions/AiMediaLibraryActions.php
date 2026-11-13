@@ -41,6 +41,10 @@ class AiMediaLibraryActions
                     ->rows(3),
             ])
             ->action(function (array $data, FileData $file) {
+                if (self::refuseProtected($file)) {
+                    return;
+                }
+
                 app(AiImageOperations::class)->dispatchOne(
                     type: AiImageOperation::TYPE_EDIT,
                     sourceMediaId: self::mediaId($file),
@@ -114,6 +118,22 @@ class AiMediaLibraryActions
         return self::baseImageAction($name, $label, $icon)
             ->requiresConfirmation()
             ->action(function (FileData $file) use ($type) {
+                if (self::refuseProtected($file)) {
+                    return;
+                }
+
+                // Een upscale die de bibliotheek daarna toch zou weigeren: niet betalen.
+                if ($type === AiImageOperation::TYPE_UPSCALE) {
+                    $dimensions = AiImageOperations::dimensionsOf(self::mediaId($file));
+                    $refusal = $dimensions === null ? null : AiImageOperations::upscaleRefusal($dimensions[0], $dimensions[1]);
+
+                    if ($refusal !== null) {
+                        Notification::make()->title(__('Niet geüpscaled'))->body($refusal)->danger()->send();
+
+                        return;
+                    }
+                }
+
                 app(AiImageOperations::class)->dispatchOne(
                     type: $type,
                     sourceMediaId: self::mediaId($file),
@@ -139,9 +159,11 @@ class AiMediaLibraryActions
             ->visible(fn () => AiImageOperations::isConfigured())
             ->requiresConfirmation()
             ->action(function (Collection $files) use ($type) {
+                // Een beschermd item (privé, chatbijlage, map chat of orders) gaat niet naar Fal.
                 $ids = $files
                     ->filter(fn (FileData $file) => self::isImage($file))
                     ->map(fn (FileData $file) => self::mediaId($file))
+                    ->reject(fn (int $id) => AiImageOperations::isProtectedSource($id))
                     ->values()
                     ->all();
 
@@ -171,7 +193,23 @@ class AiMediaLibraryActions
         return (int) $file->getSource()->getKey();
     }
 
-    protected static function notifyQueued(): void
+    /** Weigert met een melding als het item niet naar een externe AI mag. */
+    protected static function refuseProtected(FileData $file): bool
+    {
+        if (! AiImageOperations::isProtectedSource(self::mediaId($file))) {
+            return false;
+        }
+
+        Notification::make()
+            ->title(__('Niet verstuurd'))
+            ->body(__('Deze afbeelding is privé of beschermd en gaat niet naar de AI-dienst.'))
+            ->danger()
+            ->send();
+
+        return true;
+    }
+
+        protected static function notifyQueued(): void
     {
         Notification::make()
             ->title(__('Bezig met verwerken'))

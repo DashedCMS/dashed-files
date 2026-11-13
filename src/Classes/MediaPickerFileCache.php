@@ -62,15 +62,34 @@ class MediaPickerFileCache
         return static::$conversions[$key];
     }
 
+    /** @var array<string, array{0: ?int, 1: ?int}> het focuspunt per item, voor de registratie van formaten */
+    protected static array $focal = [];
+
+    /**
+     * @return array{0: ?int, 1: ?int}
+     */
+    public static function rememberFocal(int|string $mediaLibraryItemId, Closure $callback): array
+    {
+        $key = (string) $mediaLibraryItemId;
+
+        if (! array_key_exists($key, static::$focal)) {
+            $focal = $callback();
+            static::$focal[$key] = is_array($focal) ? [isset($focal[0]) ? (int) $focal[0] : null, isset($focal[1]) ? (int) $focal[1] : null] : [null, null];
+        }
+
+        return static::$focal[$key];
+    }
+
     public static function forgetConversions(int|string $mediaLibraryItemId): void
     {
-        unset(static::$conversions[(string) $mediaLibraryItemId]);
+        unset(static::$conversions[(string) $mediaLibraryItemId], static::$focal[(string) $mediaLibraryItemId]);
     }
 
     public static function flush(): void
     {
         static::$files = [];
         static::$conversions = [];
+        static::$focal = [];
     }
 
     /**

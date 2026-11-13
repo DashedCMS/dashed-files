@@ -18,10 +18,16 @@
     "require": {
         "php": "^8.4",
         "aws/aws-sdk-php": "^3",
+        "dashed/dashed-core": "^4.106",
         "league/flysystem-aws-s3-v3": "^3.0",
         "ralphjsmit/laravel-filament-media-library": "^4.0-beta12",
         "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-package-tools": "^1.16"
+    },
+    "conflict": {
+        "dashed/dashed-ai": "<4.9",
+        "dashed/dashed-livechat": "<4.35",
+        "dashed/dashed-seo": "<4.8"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.63",
@@ -35,7 +41,8 @@
             "Dashed\\DashedFiles\\Database\\Factories\\": "database/factories"
         },
         "files": [
-            "src/Helpers/helpers.php"
+            "src/Helpers/helpers.php",
+            "src/Helpers/legacy-class-aliases.php"
         ]
     },
     "autoload-dev": {
@@ -56,6 +63,9 @@
         }
     },
     "extra": {
+        "branch-alias": {
+            "dev-master": "4.x-dev"
+        },
         "laravel": {
             "providers": [
                 "Dashed\\DashedFiles\\DashedFilesServiceProvider",

@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Dashed\DashedFiles\Models\AiImageOperation;
+use Dashed\DashedFiles\Services\AiCeilingReached;
 use Dashed\DashedFiles\Services\AiImageOperations;
 use Dashed\DashedFiles\Events\AiImageOperationCompleted;
 
@@ -39,7 +40,27 @@ class ProcessAiImageOperation implements ShouldQueue
 
         $op->update(['status' => AiImageOperation::STATUS_PROCESSING]);
 
-        $resultId = $this->run($op, app(AiImageOperations::class));
+        // Een upscale die groter uitkomt dan de inname aanneemt: weigeren
+        // vóór de betaalde aanroep, zonder herkansing.
+        if ($op->type === AiImageOperation::TYPE_UPSCALE) {
+            $dimensions = AiImageOperations::dimensionsOf($op->source_media_id);
+            $refusal = $dimensions === null ? null : AiImageOperations::upscaleRefusal($dimensions[0], $dimensions[1]);
+
+            if ($refusal !== null) {
+                $op->update(['status' => AiImageOperation::STATUS_FAILED, 'error' => $refusal]);
+
+                return;
+            }
+        }
+
+        try {
+            $resultId = $this->run($op, app(AiImageOperations::class)->forOperation($op, true));
+        } catch (AiCeilingReached $exception) {
+            // Er is niets verstuurd; een herkansing loopt tegen hetzelfde plafond.
+            $op->update(['status' => AiImageOperation::STATUS_FAILED, 'error' => $exception->getMessage()]);
+
+            return;
+        }
 
         if (! $resultId) {
             // Gooi zodat Laravel het opnieuw probeert met backoff; failed() zet de
@@ -88,7 +109,7 @@ class ProcessAiImageOperation implements ShouldQueue
 
         return match ($op->type) {
             AiImageOperation::TYPE_REMOVE_BACKGROUND => $service->removeBackground($sourceUrl, $op->site_id),
-            AiImageOperation::TYPE_UPSCALE => $service->upscale($sourceUrl, $op->site_id),
+            AiImageOperation::TYPE_UPSCALE => $service->upscale($sourceUrl, $op->site_id, AiImageOperations::dimensionsOf($op->source_media_id)),
             AiImageOperation::TYPE_EDIT => $service->edit($sourceUrl, $params['prompt'] ?? '', $op->site_id),
             AiImageOperation::TYPE_PRODUCT_PHOTO => $service->productPhoto($sourceUrl, $op->site_id),
             default => null,

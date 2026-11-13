@@ -19,6 +19,55 @@ use Dashed\DashedFiles\Services\SubjectImageResolver;
 
 class AiGenerateImageAction
 {
+    /** De map op de publieke schijf waar een geüploade referentie even staat. */
+    public const REFERENCE_DIRECTORY = 'ai-reference-temp';
+
+    public const REFERENCE_DISK = 'public';
+
+    /**
+     * De knop op een veld van de eigen mediabibliotheek: zelfde naam en
+     * uiterlijk als make(), maar hij opent alleen het keuzevenster op de
+     * bron `ai`. Daar zit het formulier, en het genereren gaat via de wachtrij.
+     */
+    public static function opener(): Action
+    {
+        return Action::make('aiGenerateImage')
+            ->label(__('Genereer met AI'))
+            ->icon('heroicon-o-sparkles')
+            ->color('info')
+            ->alpineClickHandler("window.dashedMedia && window.dashedMedia.field && window.dashedMedia.field.pickSource(\$el, 'ai')");
+    }
+
+    /**
+     * Of de bron `ai` voor dit veld bestaat: sleutel en AI-pakket aanwezig,
+     * het veld sluit hem niet uit, en de gebruiker mag uploaden.
+     */
+    public static function sourceAvailableFor(mixed $field = null): bool
+    {
+        return (bool) rescue(function () use ($field) {
+            $only = is_object($field) && method_exists($field, 'getSources') ? $field->getSources() : null;
+            $registry = app(\Dashed\DashedFiles\Classes\Sources\MediaSourceRegistry::class);
+
+            return \Dashed\DashedFiles\Classes\MediaLibrary::allows('upload')
+                && $registry->find(\Dashed\DashedFiles\Classes\Sources\AiSource::KEY, $registry::siteId(), $only) !== null;
+        }, false, false);
+    }
+
+    /**
+     * Haalt een geüploade referentie weer van de publieke schijf. Alleen
+     * een pad in de eigen tijdelijke map; een adres of iets anders blijft staan.
+     */
+    public static function forgetReferenceUpload(mixed $value): void
+    {
+        foreach (is_array($value) ? $value : [$value] as $path) {
+            if (! is_string($path) || ! str_starts_with($path, self::REFERENCE_DIRECTORY . '/') || str_contains($path, '..')) {
+                continue;
+            }
+
+            rescue(fn () => Storage::disk(self::REFERENCE_DISK)->delete($path), null, false);
+        }
+    }
+
     /**
      * Build a Filament hint-action that opens a modal to generate an image via fal.ai
      * and set the resulting media library id onto the field it was attached to.
@@ -35,29 +84,50 @@ class AiGenerateImageAction
             ->modalSubmitActionLabel(__('Genereer'))
             ->schema(self::buildSchema())
             ->action(function (array $data, $component) {
-                $prompt = trim((string) ($data['prompt'] ?? ''));
-                if (! $prompt) {
-                    Notification::make()
-                        ->title(__('Geen prompt opgegeven'))
-                        ->danger()
-                        ->send();
+                // Wat er ook gebeurt (geen prompt, een fout bij het adres van
+                // de referentie, een mislukte aanroep): de geüploade
+                // referentie stond alleen voor deze ene aanroep op de publieke schijf.
+                try {
+                    $prompt = trim((string) ($data['prompt'] ?? ''));
+                    if (! $prompt) {
+                        Notification::make()
+                            ->title(__('Geen prompt opgegeven'))
+                            ->danger()
+                            ->send();
 
-                    return;
+                        return;
+                    }
+
+                    $reference = self::resolveReferenceUrl($data);
+                    $ratio = $data['ratio'] ?? '1:1';
+
+                    // Een geplakt adres of een gekozen beeld van een onderwerp
+                    // komt uit de formulierstaat: opnieuw getoetst, want een
+                    // beschermd bestand van de bibliotheek gaat niet naar Fal.
+                    if ($reference && \Dashed\DashedFiles\Classes\MediaPrivacy::isProtectedUrl($reference)) {
+                        Notification::make()
+                            ->title(__('Niet verstuurd'))
+                            ->body(__('Deze referentieafbeelding is privé of beschermd en gaat niet naar de AI-dienst.'))
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
+                    // Via generate() en dus onder het dagplafond van de site (AiSpend).
+                    $mediaId = app(AiImageGenerator::class)->generate(
+                        prompt: $prompt,
+                        ratio: $ratio,
+                        referenceImageUrl: $reference,
+                    );
+                } finally {
+                    self::forgetReferenceUpload($data['reference_upload'] ?? null);
                 }
-
-                $reference = self::resolveReferenceUrl($data);
-                $ratio = $data['ratio'] ?? '1:1';
-
-                $mediaId = app(AiImageGenerator::class)->generate(
-                    prompt: $prompt,
-                    ratio: $ratio,
-                    referenceImageUrl: $reference,
-                );
 
                 if (! $mediaId) {
                     Notification::make()
                         ->title(__('Genereren mislukt'))
-                        ->body(__('Check de logs of je fal.ai sleutel. Probeer het nog eens of pas de prompt aan.'))
+                        ->body(__('Check de logs of je fal.ai sleutel, en of het dagplafond voor AI-afbeeldingen (Instellingen, Media) niet bereikt is. Probeer het nog eens of pas de prompt aan.'))
                         ->danger()
                         ->send();
 
@@ -127,8 +197,8 @@ class AiGenerateImageAction
             FileUpload::make('reference_upload')
                 ->label(__('Upload referentieafbeelding'))
                 ->image()
-                ->disk('public')
-                ->directory('ai-reference-temp')
+                ->disk(self::REFERENCE_DISK)
+                ->directory(self::REFERENCE_DIRECTORY)
                 ->visibility('public')
                 ->visible(fn (callable $get) => $get('reference_source') === 'upload'),
 
@@ -255,7 +325,7 @@ class AiGenerateImageAction
         }
 
         try {
-            return Storage::disk('public')->url($path);
+            return Storage::disk(self::REFERENCE_DISK)->url($path);
         } catch (\Throwable $e) {
             return null;
         }

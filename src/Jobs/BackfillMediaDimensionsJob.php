@@ -4,12 +4,13 @@ namespace Dashed\DashedFiles\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
+use Dashed\DashedFiles\Models\MediaItem;
+use Dashed\DashedFiles\Classes\MediaLibrary;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Dashed\DashedFiles\Observers\MediaObserver;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
 
 class BackfillMediaDimensionsJob implements ShouldQueue
 {
@@ -62,8 +63,13 @@ class BackfillMediaDimensionsJob implements ShouldQueue
                 $media->setCustomProperty('original_height', $dimensions[1]);
                 $media->saveQuietly();
 
-                MediaLibraryItem::where('id', $media->model_id)
-                    ->update(['conversion_urls' => null]);
+                // Alleen voor een mediarij van de bibliotheek zelf: model_id van
+                // een ander model wijst naar een willekeurig item.
+                if ($item = MediaItem::fromMedia($media)) {
+                    app(MediaLibrary::class)->invalidate($item, 'dimensions');
+                    // Stil opgeslagen: de observer die de spiegelkolommen bijhoudt ziet dit niet.
+                    app(MediaLibrary::class)->syncMirror($item);
+                }
             } catch (\Throwable $e) {
                 $media->setCustomProperty('original_width', 0);
                 $media->setCustomProperty('original_height', 0);

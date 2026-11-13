@@ -39,7 +39,16 @@ class RegenerateMediaLibraryConversions implements ShouldQueue
      */
     public function handle(): void
     {
-        Artisan::call('media-library:regenerate', ['--ids' => $this->mediaId, '--force' => true, '--only-missing']);
+        // Hetzelfde slot als de pomp: elke schrijver zet de hele kolom
+        // `generated_conversions` terug, dus twee tegelijk verliezen een formaat.
+        $lock = Cache::lock(\Dashed\DashedFiles\Classes\Conversions\ConversionPump::mediaLockKey((int) $this->mediaId), 120);
+        rescue(fn () => $lock->block(20), report: false);
+
+        try {
+            Artisan::call('media-library:regenerate', ['--ids' => $this->mediaId, '--force' => true, '--only-missing']);
+        } finally {
+            rescue(fn () => $lock->release(), report: false);
+        }
         // Cache::forget removed - MediaObserver::updated() clears the cache
         // when PerformConversionsJob finishes and updates the media model
     }

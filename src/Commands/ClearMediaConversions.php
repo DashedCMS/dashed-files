@@ -3,7 +3,7 @@
 namespace Dashed\DashedFiles\Commands;
 
 use Illuminate\Console\Command;
-use RalphJSmit\Filament\MediaLibrary\Models\MediaLibraryItem;
+use Dashed\DashedFiles\Classes\MediaLibrary;
 
 class ClearMediaConversions extends Command
 {
@@ -13,10 +13,9 @@ class ClearMediaConversions extends Command
 
     public function handle(): int
     {
-        foreach (MediaLibraryItem::all() as $item) {
-            $item->conversion_urls = [];
-            $item->save();
-        }
+        // Ook de cache: daar staan dezelfde url's in, en zonder dit
+        // leest de site ze daar gewoon weer uit.
+        app(MediaLibrary::class)->invalidateAll();
 
         return self::SUCCESS;
     }

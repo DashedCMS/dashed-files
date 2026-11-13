@@ -24,6 +24,6 @@ return new class () extends Migration {
 
     public function down()
     {
-        Schema::dropIfExists('filament_media_library');
+        // Bewust leeg: een migrate:rollback mag op geen enkele site de mediabibliotheek wissen.
     }
 };

@@ -28,4 +28,9 @@ return new class () extends Migration {
             $table->nullableTimestamps();
         });
     }
+
+    public function down(): void
+    {
+        // Bewust leeg: een migrate:rollback mag op geen enkele site de mediabibliotheek wissen.
+    }
 };

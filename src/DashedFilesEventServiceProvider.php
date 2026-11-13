@@ -15,6 +15,9 @@ class DashedFilesEventServiceProvider extends ServiceProvider
         \Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent::class => [
             \Dashed\DashedFiles\Listeners\ListenForNewConversions::class,
         ],
+        \Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent::class => [
+            \Dashed\DashedFiles\Listeners\GuardMediaAddedOutsideIngest::class,
+        ],
     ];
 
     /**
