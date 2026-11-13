@@ -377,6 +377,98 @@ class MediaHelper
         }
     }
 
+    /**
+     * Laadt de media van een lijst content-blokken in één cacheronde voor,
+     * zodat de afbeeldingen die daarna renderen uit het geheugen komen in
+     * plaats van elk een eigen Cache::get (bij Redis een round trip per
+     * beeld). Verandert niets aan wat uitgeleverd wordt: het vult alleen
+     * dezelfde geheugencache die getSingleMedia() zelf ook vult, voor de
+     * formaten uit `dashed-files.preload_conversions` (standaard `medium`).
+     * Een id dat hier niet bij zit, of een ander formaat, gaat gewoon zijn
+     * eigen weg. Nooit een fout voor de bezoeker.
+     */
+    public function preloadContentMedia(mixed $content): void
+    {
+        if (! config('dashed-files.preload_content_media', true) || ! is_array($content) || $content === []) {
+            return;
+        }
+
+        $ids = $this->mediaIdsIn($content);
+
+        if ($ids === []) {
+            return;
+        }
+
+        $conversions = array_filter((array) config('dashed-files.preload_conversions', ['medium']), 'is_string');
+
+        rescue(function () use ($ids, $conversions) {
+            foreach ($conversions ?: ['medium'] as $conversion) {
+                $this->preloadMediaUrls($ids, $conversion);
+            }
+        }, report: false);
+    }
+
+    /**
+     * De media-id's in blokdata, zonder het schema van de blokken te kennen:
+     * een geheel getal (of cijfertekst) onder een sleutel die naar zijn naam
+     * een mediaveld is (dezelfde lijst als de gebruiksindex voor een gok), of
+     * een lijst daarvan. Alles dieper in de data wordt ook doorzocht. Een
+     * overbodig id kost een regel in dezelfde cacheaanvraag; een gemist id
+     * gaat gewoon de gewone weg.
+     *
+     * @return array<int, int>
+     */
+    public function mediaIdsIn(array $content, int $limit = 500): array
+    {
+        $found = [];
+        $keys = \Dashed\DashedFiles\Classes\Usage\MediaReferenceExtractor::GUESS_KEYS;
+
+        $asId = function (mixed $value): ?int {
+            if (is_int($value) && $value > 0) {
+                return $value;
+            }
+
+            return is_string($value) && ctype_digit($value) && strlen($value) <= 12 && (int) $value > 0 ? (int) $value : null;
+        };
+
+        $walk = function (array $data, int $depth) use (&$walk, &$found, $keys, $asId, $limit): void {
+            if ($depth > 8) {
+                return;
+            }
+
+            foreach ($data as $key => $value) {
+                if (count($found) >= $limit) {
+                    return;
+                }
+
+                if (is_string($key) && in_array($key, $keys, true)) {
+                    foreach (is_array($value) ? $value : [$value] as $entry) {
+                        if (is_array($entry)) {
+                            $walk($entry, $depth + 1);
+                        } elseif (($id = $asId($entry)) !== null) {
+                            $found[$id] = $id;
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    // Een verwijzing naar een globaal blok is geen media.
+                    if (($value['type'] ?? null) === 'globalBlock') {
+                        continue;
+                    }
+
+                    $walk($value, $depth + 1);
+                }
+            }
+        };
+
+        $walk($content, 0);
+
+        return array_values($found);
+    }
+
     public function getMultipleMedia(array $mediaIds, string $conversion = 'medium'): ?Collection
     {
         $this->preloadMediaUrls($mediaIds, $conversion);
