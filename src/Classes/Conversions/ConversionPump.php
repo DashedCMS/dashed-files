@@ -220,6 +220,8 @@ class ConversionPump
             $this->dispatch($run);
         }
 
+        ConversionRunTask::sync($run);
+
         return $run->refresh();
     }
 
@@ -329,6 +331,8 @@ class ConversionPump
             'updated_at' => now(),
         ]);
 
+        ConversionRunTask::sync($run);
+
         return $run->refresh();
     }
 
@@ -366,6 +370,8 @@ class ConversionPump
 
         $this->dispatch($run);
 
+        ConversionRunTask::sync($run);
+
         return $run->refresh();
     }
 
@@ -383,6 +389,8 @@ class ConversionPump
         ]);
 
         if ($updated) {
+            ConversionRunTask::sync($runId);
+
             Log::warning('Media conversion run #' . $runId . ' failed: ' . mb_substr((string) $reason, 0, 500));
         }
     }

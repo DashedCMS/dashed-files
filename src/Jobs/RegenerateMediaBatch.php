@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Dashed\DashedFiles\Models\MediaConversionRun;
 use Dashed\DashedFiles\Classes\Browse\BrowseSchema;
 use Dashed\DashedFiles\Classes\Conversions\ConversionPump;
+use Dashed\DashedFiles\Classes\Conversions\ConversionRunTask;
 
 /**
  * Eén slag van de pomp: verwerkt binnen een tijdsbudget een paar formaten
@@ -78,6 +79,9 @@ class RegenerateMediaBatch implements ShouldQueue
         } finally {
             rescue(fn () => $lock->release(), report: false);
         }
+
+        // De stand na deze slag in het takenicoon van het CMS.
+        ConversionRunTask::sync($this->runId);
 
         // Op een synchrone wachtrij zou een nieuwe slag hier direct en
         // genest draaien, tot alles klaar is: daar doet de minuuttaak het.

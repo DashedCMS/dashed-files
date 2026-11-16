@@ -3,6 +3,7 @@
 namespace Dashed\DashedFiles\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Dashed\DashedFiles\Services\AiImageOperationTaskMirror;
 
 class AiImageOperation extends Model
 {
@@ -25,6 +26,12 @@ class AiImageOperation extends Model
         'params' => 'array',
         'context' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        // Gespiegeld naar het takenicoon in de topbalk van het CMS.
+        static::saved(fn (AiImageOperation $op) => AiImageOperationTaskMirror::sync($op));
+    }
 
     public function isFinished(): bool
     {

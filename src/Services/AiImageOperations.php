@@ -372,6 +372,10 @@ class AiImageOperations
     ): string {
         $batchId = (string) Str::uuid();
 
+        // Eén taak in het takenicoon van het CMS voor de hele reeks, met het
+        // hele aantal vooraf (zie AiImageOperationTaskMirror::expect()).
+        AiImageOperationTaskMirror::expect($batchId, count($sourceMediaIds), $type);
+
         foreach ($sourceMediaIds as $mediaId) {
             $this->dispatchOne($type, (int) $mediaId, $params, $batchId, $siteId);
         }

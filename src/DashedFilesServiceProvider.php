@@ -772,15 +772,27 @@ MARKDOWN,
         // ------------------------------------------------------------------
         // Een selectie
         // ------------------------------------------------------------------
-        $bulk = function (string $key, string $label, \Closure $eligible, \Closure $dispatch, \Closure $confirmText, \Closure $doneText, string $noneText, \Closure $restText) use ($entry, $max, $capNote, $skipNote) {
+        // $makeJob geeft de job terug in plaats van hem klaar te zetten: met
+        // een dashed-ai die het kent gaat de hele selectie als één taak naar
+        // het takenicoon van het CMS, anders job voor job zoals voorheen.
+        $bulk = function (string $key, string $label, \Closure $eligible, \Closure $makeJob, \Closure $confirmText, \Closure $doneText, string $noneText, \Closure $restText) use ($entry, $max, $capNote, $skipNote) {
             return $entry(
                 $key,
                 $label,
-                function (\Illuminate\Support\Collection $items) use ($eligible, $dispatch, $doneText, $restText, $max, $skipNote) {
+                function (\Illuminate\Support\Collection $items) use ($label, $eligible, $makeJob, $doneText, $restText, $max, $skipNote) {
                     $fit = $items->filter($eligible)->values();
                     $now = $fit->take($max);
 
-                    $now->each($dispatch);
+                    $jobs = $now->map($makeJob)->all();
+                    $grouped = 'Dashed\\DashedAi\\Media\\MediaTask';
+
+                    if (class_exists($grouped) && method_exists($grouped, 'dispatchGrouped')) {
+                        $grouped::dispatchGrouped($label, $jobs, auth()->user());
+                    } else {
+                        foreach ($jobs as $job) {
+                            dispatch($job);
+                        }
+                    }
 
                     return $doneText($now->count())
                         . $skipNote($fit->count(), $now->count())
@@ -805,7 +817,7 @@ MARKDOWN,
             'generate-alt-text',
             __('Alt-tekst genereren'),
             $needsAlt,
-            fn (MediaItem $item) => dispatch(new $altJob((int) $item->getKey())),
+            fn (MediaItem $item) => new $altJob((int) $item->getKey()),
             fn (int $now) => ($in = $languages())['multiple']
                 ? __('Voor :count afbeeldingen wordt de alt-tekst aangevuld waar hij ontbreekt, in :locales talen (:list). Elke afbeelding is één betaalde AI-aanroep, voor alle talen tegelijk.', ['count' => $now, 'locales' => $in['count'], 'list' => $in['list']])
                 : __('Voor :count afbeeldingen zonder alt-tekst wordt een alt-tekst gegenereerd. Elke afbeelding is een betaalde AI-aanroep.', ['count' => $now]),
@@ -818,7 +830,7 @@ MARKDOWN,
             'suggest-tags',
             __('Tags voorstellen'),
             $canSee,
-            fn (MediaItem $item) => dispatch(new $tagJob((int) $item->getKey())),
+            fn (MediaItem $item) => new $tagJob((int) $item->getKey()),
             fn (int $now) => __('Voor :count afbeeldingen worden tags voorgesteld en toegevoegd. Elke afbeelding is een betaalde AI-aanroep.', ['count' => $now]),
             fn (int $now) => __('Voor :count afbeeldingen worden tags voorgesteld.', ['count' => $now]),
             __('Geen van de geselecteerde bestanden is een afbeelding waar de AI tags voor kan voorstellen.'),
@@ -830,7 +842,7 @@ MARKDOWN,
             'generate-alt-text-and-tags',
             __('Alt-tekst en tags genereren'),
             $canSee,
-            fn (MediaItem $item) => dispatch(new $altJob((int) $item->getKey(), null, false, true)),
+            fn (MediaItem $item) => new $altJob((int) $item->getKey(), null, false, true),
             fn (int $now) => ($in = $languages())['multiple']
                 ? __('Voor :count afbeeldingen worden tags voorgesteld en wordt de alt-tekst aangevuld waar hij ontbreekt, in :locales talen (:list). Elke afbeelding is één betaalde AI-aanroep voor beide.', ['count' => $now, 'locales' => $in['count'], 'list' => $in['list']])
                 : __('Voor :count afbeeldingen worden tags voorgesteld en wordt een ontbrekende alt-tekst gegenereerd. Elke afbeelding is één betaalde AI-aanroep voor beide.', ['count' => $now]),

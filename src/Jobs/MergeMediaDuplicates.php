@@ -8,6 +8,7 @@ use Dashed\DashedFiles\Models\MediaItem;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Dashed\DashedCore\Models\BackgroundTask;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Dashed\DashedFiles\Classes\Queue\WorkBudget;
 use Dashed\DashedFiles\Classes\Usage\MediaDuplicates;
@@ -56,22 +57,28 @@ class MergeMediaDuplicates implements ShouldQueue, ShouldBeUnique
         return $this->step === 0 ? $this->batch : $this->batch . ':' . $this->step;
     }
 
+    public const TASK_TYPE = 'media-merge';
+
     public function handle(MediaDuplicates $duplicates): void
     {
         $keep = MediaItem::query()->find($this->keepId);
 
         if (! $keep) {
-            $this->notify(__('Samenvoegen is niet gelukt: het bestand dat moest blijven bestaat niet meer.'), false);
+            $this->notify(__('Samenvoegen is niet gelukt: het bestand dat moest blijven bestaat niet meer.'), false, true);
 
             return;
         }
 
+        // Meteen in het takenicoon, ook als de eerste slag de laatste is.
+        $task = $this->task();
         $budget = WorkBudget::start();
 
         try {
             $step = $duplicates->rewriteStep($keep, $this->otherIds, $this->batch, $this->userId, $this->after, fn () => $budget->spent());
 
             if (! $step['done']) {
+                $task?->progress($this->converted + $step['converted']);
+
                 dispatch((new self($this->keepId, $this->otherIds, $this->batch, $this->userId, $step['after'], $this->converted + $step['converted'], $this->step + 1))
                     ->onConnection($this->connection)->onQueue($this->queue));
 
@@ -81,7 +88,7 @@ class MergeMediaDuplicates implements ShouldQueue, ShouldBeUnique
             $result = $duplicates->finish($keep, $this->otherIds, $this->batch, $this->userId, $this->converted + $step['converted']);
         } catch (Throwable $exception) {
             report($exception);
-            $this->notify(__('Samenvoegen is niet gelukt. Er is niets weggegooid dat nog in gebruik was.'), false);
+            $this->notify(__('Samenvoegen is niet gelukt. Er is niets weggegooid dat nog in gebruik was.'), false, true);
 
             return;
         }
@@ -95,8 +102,27 @@ class MergeMediaDuplicates implements ShouldQueue, ShouldBeUnique
         $this->notify($message, $result['kept_out'] === []);
     }
 
-    private function notify(string $message, bool $success): void
+    /** Een harde fout (time-out, werker gestopt): de taak mag niet als lopend blijven staan. */
+    public function failed(?Throwable $exception = null): void
     {
+        $this->notify(__('Samenvoegen is niet gelukt. Er is niets weggegooid dat nog in gebruik was.'), false, true);
+    }
+
+    /**
+     * Met een dashed-core die het takenicoon kent komt de uitkomst uit de
+     * taak (één melding in de bel); anders de eigen melding zoals voorheen.
+     */
+    private function notify(string $message, bool $success, bool $failed = false): void
+    {
+        if ($task = $this->task()) {
+            // Al afgerond (failed() na een afgeronde slag): geen tweede melding.
+            if (! $task->isFinished()) {
+                $failed ? $task->fail($message) : $task->finish($message);
+            }
+
+            return;
+        }
+
         $model = config('auth.providers.users.model');
         $user = $this->userId !== null && is_string($model) && class_exists($model) ? $model::query()->find($this->userId) : null;
 
@@ -109,5 +135,37 @@ class MergeMediaDuplicates implements ShouldQueue, ShouldBeUnique
 
             ($success ? $notification->success() : $notification->warning())->sendToDatabase($user);
         });
+    }
+
+    /**
+     * De taak van deze samenvoeging in het takenicoon van dashed-core, één
+     * per batch: elke slag is een nieuwe job en pakt hem weer op.
+     */
+    private function task(): ?BackgroundTask
+    {
+        if (! class_exists(BackgroundTask::class)) {
+            return null;
+        }
+
+        return rescue(function (): ?BackgroundTask {
+            $task = BackgroundTask::query()->firstOrNew([
+                'subject_type' => self::TASK_TYPE,
+                'subject_id' => $this->batch,
+            ]);
+
+            if (! $task->exists) {
+                $task->fill([
+                    'type' => self::TASK_TYPE,
+                    'label' => __('Dubbele bestanden samenvoegen'),
+                    'user_id' => $this->userId,
+                    'status' => BackgroundTask::STATUS_RUNNING,
+                    'done' => 0,
+                    'notify' => $this->userId !== null,
+                    'started_at' => now(),
+                ])->save();
+            }
+
+            return $task;
+        }, null, report: false);
     }
 }

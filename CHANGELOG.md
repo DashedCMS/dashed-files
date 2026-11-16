@@ -2,6 +2,13 @@
 
 All notable changes to `dashed-files` will be documented in this file.
 
+## v4.10.0 - 2026-11-16
+
+### Added
+- Het taakcentrum (het tabje Bezig) toont nu afmetingen aanvullen, AI-beeldbewerkingen (een bulkactie is één taak), de formatenpomp, dubbele bestanden samenvoegen, bestanden verhuizen (dagregel) en de bulkacties in de mediabibliotheek.
+- Een reeks AI-bewerkingen meldt pas klaar als de hele reeks klaar is, met één melding.
+- Een boekhoudregel van `AiSpend::charge()` komt niet als eigen taak in de lijst; de aanroeper toont zijn eigen taak.
+
 ## v4.7.3 - 2026-11-06
 
 ### Changed
